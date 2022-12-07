@@ -6,13 +6,19 @@ from sklearn.model_selection import train_test_split
 # Aqua imports
 import cleanlab as cl
 
-from aqua.models.presets import ConvNet
+from aqua.models.presets import ImageNet
 from aqua.data import Aqdata, TestAqdata
 
+output_dict = {
+    "cifar10" : 10
+}
+
 class AqModel:
-    def __init__(self, modality, method):
+    def __init__(self, modality, method, dataset):
         if modality == 'image':
-            self.model = ConvNet('resnet34')
+            self.model = ImageNet('resnet34',
+                                 epochs=1,
+                                 output_dim=output_dict[dataset])
         else:
             raise RuntimeError(f"Incorrect modality: {modality}")
         self.method = method
@@ -41,8 +47,8 @@ class AqModel:
             return self.wrapper_model.predict(data)
 
 class TrainAqModel(AqModel):
-    def __init__(self, modality, method):
-        super().__init__(modality, method)
+    def __init__(self, modality, method, dataset):
+        super().__init__(modality, method, dataset)
         # Train should only support fit/fit_predict ?
 
     def fit(self, data, labels):

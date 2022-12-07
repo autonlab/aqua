@@ -24,7 +24,7 @@ print(labels_annot.shape)
 data_aq = Aqdata(data_cifar, label_cifar, labels_annot)
 data_aq_test = Aqdata(data_cifar_test, label_cifar)
 
-train_model = TrainAqModel('image', 'cleanlab')
+train_model = TrainAqModel('image', 'cleanlab', 'cifar10')
 train_labels = train_model.fit_predict(data_aq.data, data_aq.labels)
 print(train_labels.shape)
 print("F1 Score: ")

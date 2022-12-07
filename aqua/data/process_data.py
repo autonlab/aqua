@@ -16,7 +16,7 @@ class Aqdata(Dataset):
         if self.corrected_labels is not None:
             return self.data[idx], self.labels[idx], self.corrected_labels[idx]
         else:
-            return self.data[idx], self.labels[idx], None
+            return self.data[idx], self.labels[idx], 'None'
 
 
 class TestAqdata(Dataset):
