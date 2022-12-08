@@ -14,11 +14,15 @@ output_dict = {
 }
 
 class AqModel:
-    def __init__(self, modality, method, dataset):
+    def __init__(self, modality, 
+                       method, 
+                       dataset,
+                       device='cpu'):
         if modality == 'image':
             self.model = ImageNet('resnet34',
-                                 epochs=1,
-                                 output_dim=output_dict[dataset])
+                                 epochs=6,
+                                 output_dim=output_dict[dataset],
+                                 device=device)
         else:
             raise RuntimeError(f"Incorrect modality: {modality}")
         self.method = method
@@ -34,7 +38,7 @@ class AqModel:
                           random_state = 0):
         data_train, data_val, labels_train, labels_val = train_test_split(data,
                                                                           labels,
-                                                                          test_size=0.25,
+                                                                          test_size=test_size,
                                                                           random_state=random_state)
 
         return data_train, data_val, labels_train, labels_val
@@ -47,8 +51,8 @@ class AqModel:
             return self.wrapper_model.predict(data)
 
 class TrainAqModel(AqModel):
-    def __init__(self, modality, method, dataset):
-        super().__init__(modality, method, dataset)
+    def __init__(self, modality, method, dataset, device='cpu'):
+        super().__init__(modality, method, dataset, device)
         # Train should only support fit/fit_predict ?
 
     def fit(self, data, labels):
