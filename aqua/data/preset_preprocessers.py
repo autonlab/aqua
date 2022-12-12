@@ -22,8 +22,10 @@ def load_cifar10_test(data_path):
     # Load Cifar 10 data
     with open(data_path, 'rb') as fo:
         data_dict = pickle.load(fo, encoding='bytes')
-
-    return data_dict[b'data'], data_dict[b'labels']
+    
+    data, labels = data_dict[b'data'], data_dict[b'labels']
+    data = data.reshape((data.shape[0], 3, 32, 32))
+    return data, labels
 
 def load_cifar10H_softlabels(label_path, agreement_threshold=0.5):
     # Load Cifar 10 soft labels

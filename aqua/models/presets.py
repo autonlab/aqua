@@ -105,8 +105,6 @@ class ImageNet(BaseEstimator):
 
             print("Running epoch: ", epoch)
             for batch_idx, (data, target, _) in enumerate(trainloader):
-                if batch_idx==0:
-                    print(data.shape, target.shape)
                 #data, target = torch.from_numpy(data), torch.from_numpy(target)
                 data, target = data.float(), target.long()
                 data, target = data.to(self.device), target.to(self.device)
@@ -126,7 +124,8 @@ class ImageNet(BaseEstimator):
             data = data.float().to(self.device)
             preds.append(self.model(data))
 
-        return torch.vstack(preds).detach().cpu().numpy()
+        return torch.nn.Softmax(dim=1)(torch.vstack(preds)).detach().cpu().numpy()
 
-    def predict(self,data):
-        raise NotImplementedError
+    def predict(self, data):
+        probs = self.predict_proba(data)
+        return np.argmax(probs, axis=1)

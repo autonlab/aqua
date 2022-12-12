@@ -20,17 +20,18 @@ class AqModel:
                        device='cpu'):
         if modality == 'image':
             self.model = ImageNet('resnet34',
-                                 epochs=6,
+                                 epochs=1,
                                  output_dim=output_dict[dataset],
                                  device=device)
         else:
             raise RuntimeError(f"Incorrect modality: {modality}")
         self.method = method
-        self.wrapper_model = self.model
 
         # Add a wrapper over base model
         if method == 'cleanlab':
             self.wrapper_model = cl.classification.CleanLearning(self.model)
+        elif method == 'noisy':
+            self.wrapper_model = self.model
 
     def _split_data(self, data, 
                           labels,
@@ -47,7 +48,8 @@ class AqModel:
     def predict(self, data, model=None):
         if model is not None:
             self.wrapper_model = model
-        if self.method == 'cleanlab':
+        if self.method in ['cleanlab', 'noisy']:
+            # TODO: will all label error methods follow sklearn classifier schema?
             return self.wrapper_model.predict(data)
 
 class TrainAqModel(AqModel):
@@ -56,7 +58,7 @@ class TrainAqModel(AqModel):
         # Train should only support fit/fit_predict ?
 
     def fit(self, data, labels):
-        if self.method == 'cleanlab':
+        if self.method in ['cleanlab', 'noisy']:
             self.wrapper_model.fit(data, labels)
 
     def predict(self, data):
