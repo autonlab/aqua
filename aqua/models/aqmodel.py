@@ -20,7 +20,7 @@ class AqModel:
                        device='cpu'):
         if modality == 'image':
             self.model = ImageNet('resnet34',
-                                 epochs=1,
+                                 epochs=6,
                                  output_dim=output_dict[dataset],
                                  device=device)
         else:
@@ -32,6 +32,18 @@ class AqModel:
             self.wrapper_model = cl.classification.CleanLearning(self.model)
         elif method == 'noisy':
             self.wrapper_model = self.model
+
+    def get_cleaned_labels(self, data, label):
+        if self.method not in ['cleanlab']:
+            raise NotImplementedError(f"Method find_label_issues is not implemented for method: {self.method}")
+
+        if self.method == 'cleanlab':
+            label_issues = self.wrapper_model.find_label_issues(data, label)
+            label_issues = label_issues['is_label_issue']
+
+        # Label issues must be False if no issue, True if there is an issue
+        data, label = data[~label_issues], label[~label_issues]
+        return data, label
 
     def _split_data(self, data, 
                           labels,

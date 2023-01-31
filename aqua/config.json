@@ -1,0 +1,10 @@
+{
+    "data" : {
+        "cifar10" : "/home/extra_scratch/vsanil/aqua/datasets/cifar-10-batches-py/",
+        "cifar10N" : "/home/extra_scratch/vsanil/aqua/datasets/CIFAR-N/",
+        "cifar10H" : "/home/extra_scratch/vsanil/aqua/datasets/cifar-10h/"
+    },
+    "methods" : [
+        "cleanlab"
+    ]
+}
