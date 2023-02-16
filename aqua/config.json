@@ -4,7 +4,12 @@
         "cifar10N" : "/home/extra_scratch/vsanil/aqua/datasets/CIFAR-N/",
         "cifar10H" : "/home/extra_scratch/vsanil/aqua/datasets/cifar-10h/"
     },
+    "datasets" : [
+        "cifar10"
+    ],
     "methods" : [
-        "cleanlab"
-    ]
+        "cleanlab",
+        "aum"
+    ],
+    "device" : "cuda:0"
 }

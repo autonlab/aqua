@@ -14,9 +14,9 @@ class Aqdata(Dataset):
     def __getitem__(self, idx):
         # Pytorch models will have to be handled separately here
         if self.corrected_labels is not None:
-            return self.data[idx], self.labels[idx], self.corrected_labels[idx]
+            return self.data[idx], self.labels[idx], idx, self.corrected_labels[idx]
         else:
-            return self.data[idx], self.labels[idx], 'None'
+            return self.data[idx], self.labels[idx], idx, 'None'
 
 
 class TestAqdata(Dataset):
@@ -27,4 +27,4 @@ class TestAqdata(Dataset):
         return self.data.shape[0]
 
     def __getitem__(self, idx):
-        return self.data[idx]
+        return self.data[idx], idx

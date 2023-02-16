@@ -33,7 +33,7 @@ def run_experiment_1(data_aq,
                      modality,
                      dataset, 
                      method,
-                     device='cuda:5',
+                     device='cuda:0',
                      file=None):
     # Refer to doc for an exact defintion of experiment 1
 
@@ -46,7 +46,7 @@ def run_experiment_1(data_aq,
     # Define the cleaning method
     cleaning_method = TrainAqModel(modality, method, dataset, device)
     clean_data, clean_labels = cleaning_method.get_cleaned_labels(data_aq.data, data_aq.labels)
-
+    
     # TODO : convert fit_predicts to fits
     noisy_base_model.fit_predict(data_aq.data, data_aq.labels)
     clean_base_model.fit_predict(clean_data, clean_labels)
@@ -60,7 +60,7 @@ def generate_report(file=None):
 
     print("Experiment 1: \n", file=file)
 
-    for dataset in ['cifar10']:
+    for dataset in cfg['datasets']:
         modality = None
         if dataset in ['cifar10', 'noisycxt']:
             modality = 'image'
@@ -68,6 +68,12 @@ def generate_report(file=None):
         # TODO : ensure every data loading module returns a test dataset. Q : how to deal with datasets that dont have a test dataset
         data_aq, data_aq_test = data_dict[dataset]
 
-        for method in ['cleanlab']:
-            run_experiment_1(data_aq, data_aq_test, modality, dataset, method)
+        for method in cfg['methods']:
+            run_experiment_1(data_aq, 
+                             data_aq_test, 
+                             modality, 
+                             dataset, 
+                             method,
+                             device=cfg['device'],
+                             file=file)
 

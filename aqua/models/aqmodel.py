@@ -7,7 +7,10 @@ from sklearn.model_selection import train_test_split
 import cleanlab as cl
 
 from aqua.models.presets import ImageNet
+from aqua.models.cleaning_models import AUM
 from aqua.data import Aqdata, TestAqdata
+
+METHODS = ['cleanlab', 'aum']
 
 output_dict = {
     "cifar10" : 10
@@ -20,7 +23,7 @@ class AqModel:
                        device='cpu'):
         if modality == 'image':
             self.model = ImageNet('resnet34',
-                                 epochs=6,
+                                 epochs=1,
                                  output_dim=output_dict[dataset],
                                  device=device)
         else:
@@ -30,17 +33,21 @@ class AqModel:
         # Add a wrapper over base model
         if method == 'cleanlab':
             self.wrapper_model = cl.classification.CleanLearning(self.model)
+        elif method == 'aum':
+            self.wrapper_model = AUM(self.model)
         elif method == 'noisy':
             self.wrapper_model = self.model
 
     def get_cleaned_labels(self, data, label):
-        if self.method not in ['cleanlab']:
+        if self.method not in METHODS:
             raise NotImplementedError(f"Method find_label_issues is not implemented for method: {self.method}")
 
         if self.method == 'cleanlab':
             label_issues = self.wrapper_model.find_label_issues(data, label)
             label_issues = label_issues['is_label_issue']
 
+        elif self.method == "aum":
+            label_issues = self.wrapper_model.find_label_issues(data, label)
         # Label issues must be False if no issue, True if there is an issue
         data, label = data[~label_issues], label[~label_issues]
         return data, label
