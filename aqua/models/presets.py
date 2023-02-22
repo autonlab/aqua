@@ -189,17 +189,22 @@ class ImageNet(BaseNet):
                     break
     
     def predict_proba(self, data):
-        dataset = TestAqdata(data)
-        testloader = DataLoader(dataset,
-                                batch_size=self.batch_size,
-                                num_workers=4)
-        preds = []
-        for batch_idx, (data, idx) in enumerate(testloader):
-            data = data.float().to(self.device)
-            preds.append(self.model(data))
+        if data.shape[0] != 1:
+            dataset = TestAqdata(data)
+            testloader = DataLoader(dataset,
+                                    batch_size=self.batch_size,
+                                    num_workers=4)
+            preds = []
+            self.model.eval()
+            for batch_idx, (data, idx) in enumerate(testloader):
+                data = data.float().to(self.device)
+                preds.append(self.model(data))
 
-        return torch.nn.Softmax(dim=1)(torch.vstack(preds)).detach().cpu().numpy()
+            return torch.nn.Softmax(dim=1)(torch.vstack(preds)).detach().cpu().numpy()
+        else:
+            return torch.nn.Softmax(dim=1)(self.model(torch.from_numpy(data).float().to(self.device))).detach().cpu().numpy()
 
     def predict(self, data):
+        self.model.eval()
         probs = self.predict_proba(data)
         return np.argmax(probs, axis=1)
