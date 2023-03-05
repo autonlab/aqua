@@ -8,8 +8,7 @@
         "cifar10"
     ],
     "methods" : [
-        "cleanlab",
-        "aum"
+        "simiclean"
     ],
-    "device" : "cuda:0"
+    "device" : "cuda:3"
 }

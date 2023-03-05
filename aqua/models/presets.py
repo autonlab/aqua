@@ -28,10 +28,13 @@ class ConvNet(torch.nn.Module):
         
         return None, 0
 
-    def forward(self, x):
-        x = self.model(x)
-        x = self.linear(x)
-        return x
+    def forward(self, x, return_feats=False):
+        feats = self.model(x)
+        x = self.linear(feats)
+        if not return_feats:
+            return x
+        else:
+            return x, feats
 
 
 class BaseNet(BaseEstimator):
