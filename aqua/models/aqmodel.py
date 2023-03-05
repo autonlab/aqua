@@ -7,10 +7,10 @@ from sklearn.model_selection import train_test_split
 import cleanlab as cl
 
 from aqua.models.presets import ImageNet
-from aqua.models.cleaning_models import AUM, CINCER, ActiveLabelCleaning
+from aqua.models.cleaning_models import AUM, CINCER, ActiveLabelCleaning, SimiFeat
 from aqua.data import Aqdata, TestAqdata
 
-METHODS = ['cleanlab', 'aum', 'cincer', 'active_label_cleaning']
+METHODS = ['cleanlab', 'aum', 'cincer', 'active_label_cleaning', 'simifeat']
 
 output_dict = {
     "cifar10" : 10
@@ -39,6 +39,8 @@ class AqModel:
             self.wrapper_model = CINCER(self.model)
         elif method == "active_label_cleaning":
             self.wrapper_model = ActiveLabelCleaning(self.model)
+        elif method == 'simifeat':
+            self.wrapper_model = SimiFeat(self.model, method='both')
         elif method == 'noisy':
             self.wrapper_model = self.model
 
@@ -57,6 +59,9 @@ class AqModel:
             label_issues = self.wrapper_model.find_label_issues(data, label)
 
         elif self.method == "active_label_cleaning":
+            label_issues = self.wrapper_model.find_label_issues(data, label)
+
+        elif self.method == 'simifeat':
             label_issues = self.wrapper_model.find_label_issues(data, label)
             
         # Label issues must be False if no issue, True if there is an issue

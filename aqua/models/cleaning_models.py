@@ -384,11 +384,13 @@ class SimiFeat:
                                         num_epoch=num_epoch,
                                         min_similarity=min_similarity,
                                         method=method)
+        self.config.device = self.model.device
 
 
     def find_label_issues(self, data, labels):
         num_classes = np.unique(labels).shape[0]
         N = labels.shape[0]
+        self.config.cnt = min(self.config.cnt, data.shape[0]//4)
 
         self.config.num_classes = num_classes
         dataset = Aqdata(data, labels)
@@ -406,8 +408,8 @@ class SimiFeat:
         for epoch in range(self.config.num_epoch):
             record = [[] for _ in range(num_classes)]
 
-            for i_batch, (feature, label, index) in enumerate(trainloader):
-                feature, label = feature.to(self.device), label.to(self.device)
+            for i_batch, (feature, label, index, _) in enumerate(trainloader):
+                feature, label = feature.to(self.model.device).float(), label.to(self.model.device)
                 with torch.no_grad():    
                     _, extracted_feat = self.model.model(feature, return_feats=True)
                 for i in range(extracted_feat.shape[0]):
@@ -442,3 +444,12 @@ class SimiFeat:
             aa = np.sum(sel_clean_rec[:epoch + 1], 0) / sel_times_rec
             nan_flag = np.isnan(aa)
             aa[nan_flag] = 0
+
+            sel_clean_summary = np.round(aa).astype(bool)
+            sel_noisy_summary = np.round(1.0 - aa).astype(bool)
+            sel_noisy_summary[nan_flag] = False
+
+            #print(np.sum(sel_noisy_summary))
+            return sel_noisy_summary.tolist()
+        
+#class CORES

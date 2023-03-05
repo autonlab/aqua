@@ -3,10 +3,19 @@ import pandas as pd
 from torch.utils.data import Dataset
 
 class Aqdata(Dataset):
-    def __init__(self, data, ground_labels, corrected_labels=None):
+    def __init__(self, data, ground_labels, 
+                 corrected_labels=None,
+                 noise_rate=0.0,
+                 noise_type=None):
         self.data = data
         self.labels = ground_labels
         self.corrected_labels = corrected_labels
+
+        # Additional capability to add noise
+        self.noise_rate = noise_rate
+        self.noise_type = noise_type
+        self.noise_prior = None
+        self.noise_or_not = np.array([False]*data.shape[0]) # Keeps track of labels purposefully corrupted by noise
 
     def __len__(self):
         return self.data.shape[0]
