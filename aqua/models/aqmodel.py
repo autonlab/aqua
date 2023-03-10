@@ -3,14 +3,18 @@ import torch
 import sklearn
 from sklearn.model_selection import train_test_split
 
-# Aqua imports
-import cleanlab as cl
-
+# Base model imports
 from aqua.models.presets import ImageNet
-from aqua.models.cleaning_models import AUM, CINCER, ActiveLabelCleaning, SimiFeat
+#from aqua.models.cleaning_models import AUM, CINCER, ActiveLabelCleaning, SimiFeat
 from aqua.data import Aqdata, TestAqdata
 
-METHODS = ['cleanlab', 'aum', 'cincer', 'active_label_cleaning', 'simifeat']
+# Cleaning model imports
+import cleanlab as cl
+from aqua.models.modules import *
+from aqua.configs import main_config, data_configs, model_configs
+
+
+METHODS = main_config['methods']
 
 output_dict = {
     "cifar10" : 10
@@ -66,7 +70,7 @@ class AqModel:
             
         # Label issues must be False if no issue, True if there is an issue
         data, label = data[~label_issues], label[~label_issues]
-        return data, label
+        return data, label, label_issues
 
     def _split_data(self, data, 
                           labels,
@@ -111,6 +115,7 @@ class TrainAqModel(AqModel):
             return self.predict(val_data), val_labels
 
 
+# TODO (vedant, mononito) : please review this
 class TestAqModel(AqModel):
     def __init__(self, method, modality, model):
         super().__init__(modality, method)

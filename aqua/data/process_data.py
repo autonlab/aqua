@@ -16,6 +16,9 @@ class Aqdata(Dataset):
         self.noise_type = noise_type
         self.noise_prior = None
         self.noise_or_not = np.array([False]*data.shape[0]) # Keeps track of labels purposefully corrupted by noise
+    
+    def add_noise(self, data, labels):
+        raise NotImplementedError
 
     def __len__(self):
         return self.data.shape[0]

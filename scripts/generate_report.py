@@ -1,7 +1,11 @@
-import sys
+import sys, os, warnings
 sys.path.append('../')
+warnings.filterwarnings("ignore")
 
 from aqua.report import generate_report
 
-with open('output.txt', 'w') as f:
+if not os.path.exists('results'):
+    os.mkdir('results')
+
+with open('results/report.txt', 'w') as f:
     generate_report(f)

@@ -1,0 +1,12 @@
+{
+    "datasets" : [
+        "cifar10"
+    ],
+    "methods" : [
+        "cleanlab",
+        "simifeat",
+        "cincer",
+        "aum"
+    ],
+    "device" : "cuda:3"
+}

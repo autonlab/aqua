@@ -3,8 +3,10 @@ import numpy as np
 import pandas as pd
 import torch
 
+from aqua.data.process_data import Aqdata, TestAqdata
+
 # Loads CIFAR 10 train
-def load_cifar10_train(data_path):
+def __load_cifar10_train(data_path):
     data, labels = [], []
     for filename in ['data_batch_1', 'data_batch_2', 'data_batch_3', 'data_batch_4', 'data_batch_5']:
         with open(os.path.join(data_path, filename), 'rb') as fo:
@@ -18,7 +20,7 @@ def load_cifar10_train(data_path):
     return data, labels
 
 # Loads CIFAR 10 test
-def load_cifar10_test(data_path):
+def __load_cifar10_test(data_path):
     if os.path.isfile(data_path):
         raise NotADirectoryError("Given path is a file. Parent path to CIFAR10 dataset must be provided with the testing batch. Please refer to CIFAR10's official website on instructions to download: https://www.cs.toronto.edu/~kriz/cifar.html")
     
@@ -31,7 +33,7 @@ def load_cifar10_test(data_path):
     data = data.reshape((data.shape[0], 3, 32, 32))
     return data, labels
 
-def load_cifar10H_softlabels(label_path, agreement_threshold=0.5):
+def __load_cifar10H_softlabels(label_path, agreement_threshold=0.5):
     # Load Cifar 10 soft labels
     labels = pd.read_csv(label_path)
     labels = labels[labels['is_attn_check'] == 0]
@@ -43,11 +45,26 @@ def load_cifar10H_softlabels(label_path, agreement_threshold=0.5):
     return anot_1.sort_index().reset_index()
 
 
-def load_cifar10N_softlabels(label_path):
+def __load_cifar10N_softlabels(label_path):
     labels = torch.load(label_path)
     return labels['aggre_label']
 
 
-def load_cxr_train(data_path):
+def __load_cxr_train(data_path):
     filedir = '/home/extra_scratch/vsanil/aqua/datasets/cxr'
+
+
+
+
+#######################  LOAD FUNCTIONS ########################
+def load_cifar10(cfg):
+    # Load train data
+    data_cifar, label_cifar = __load_cifar10_train(cfg['train']['data'])
+    labels_annot = __load_cifar10N_softlabels(cfg['train']['annot_labels'])
+
+    # Load test data
+    data_cifar_test, label_cifar_test = __load_cifar10_test(cfg['test']['data'])
+    labels_annot_test = __load_cifar10H_softlabels(cfg['test']['annot_labels'], agreement_threshold=0.9)
+
+    return Aqdata(data_cifar, label_cifar, labels_annot), Aqdata(data_cifar_test, label_cifar_test, labels_annot_test)
     

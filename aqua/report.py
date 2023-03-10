@@ -1,32 +1,19 @@
 import os, json
 import torch 
 import numpy as np
+import pandas as pd
 
-from aqua.data import load_cifar10_test, load_cifar10_train, load_cifar10H_softlabels, load_cifar10N_softlabels, Aqdata
 from aqua.models import TrainAqModel, TestAqModel
+from aqua.configs import main_config, data_configs
+import aqua.data.preset_dataloaders as presets
 
 from sklearn.metrics import f1_score
 
-def load_cifar(cfg):
-    # Load train data
-    data_cifar, label_cifar = load_cifar10_train(cfg['cifar10'])
-    labels_annot = load_cifar10N_softlabels(os.path.join(cfg['cifar10N'], 'CIFAR-10_human.pt'))
 
-    # Load test data
-    data_cifar_test, label_cifar_test = load_cifar10_test(cfg['cifar10'])
-    labels_annot_test = load_cifar10H_softlabels(os.path.join(cfg['cifar10H'], 'data/cifar10h-raw.csv'), agreement_threshold=0.9)
-
-    return Aqdata(data_cifar, label_cifar, labels_annot), Aqdata(data_cifar_test, label_cifar_test, labels_annot_test)
-
-
-# Load config 
-with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.json')) as wb:
-    cfg = json.load(wb)
-
-
-data_dict = {
-    'cifar10' : load_cifar(cfg['data'])
-}
+# TODO : (vedant) : remove this because it is redundant: config.json already has this
+# data_dict = {
+#     'cifar10' : load_cifar(cfg['data'])
+# }
 
 def run_experiment_1(data_aq, 
                      data_aq_test, 
@@ -45,7 +32,7 @@ def run_experiment_1(data_aq,
 
     # Define the cleaning method
     cleaning_method = TrainAqModel(modality, method, dataset, device)
-    clean_data, clean_labels = cleaning_method.get_cleaned_labels(data_aq.data, data_aq.labels)
+    clean_data, clean_labels, label_issues = cleaning_method.get_cleaned_labels(data_aq.data, data_aq.labels)
     
     # TODO : convert fit_predicts to fits
     noisy_base_model.fit_predict(data_aq.data, data_aq.labels)
@@ -55,25 +42,33 @@ def run_experiment_1(data_aq,
 
     print(f"Cleaning method: {method}, Uncleaned Model's F1 Score:", round(f1_score(noisy_test_labels, data_aq_test.labels, average='weighted'), 6), "Cleaned Model's F1 Score:", round(f1_score(clean_test_labels, data_aq_test.labels, average='weighted'), 6), file=file)
 
+    return label_issues
+
 def generate_report(file=None):
     print("Generating report... \n\n", file=file)
 
     print("Experiment 1: \n", file=file)
 
-    for dataset in cfg['datasets']:
-        modality = None
-        if dataset in ['cifar10', 'noisycxt']:
-            modality = 'image'
+    for dataset in main_config['datasets']:
+        modality = data_configs[dataset]['modality']
+        data_results_dict = {}
 
         # TODO : ensure every data loading module returns a test dataset. Q : how to deal with datasets that dont have a test dataset
-        data_aq, data_aq_test = data_dict[dataset]
+        data_aq, data_aq_test = getattr(presets, f'load_{dataset}')(data_configs[dataset])
 
-        for method in cfg['methods']:
-            run_experiment_1(data_aq, 
-                             data_aq_test, 
-                             modality, 
-                             dataset, 
-                             method,
-                             device=cfg['device'],
-                             file=file)
+        for method in main_config['methods']:
+            label_issues = run_experiment_1(data_aq, 
+                                            data_aq_test, 
+                                            modality, 
+                                            dataset, 
+                                            method,
+                                            device=main_config['device'],
+                                            file=file)
+            
+            data_results_dict[method] = label_issues.tolist()
+
+        # Check if human annotated labels are available
+        
+        data_results_df = pd.DataFrame.from_dict(data_results_dict)
+        data_results_df.to_csv(f'results/{dataset}_label_issues.csv')
 
