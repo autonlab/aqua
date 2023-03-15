@@ -8,22 +8,25 @@ from aqua.data import Aqdata
 from torch.utils.data import DataLoader
 
 class SimiFeat:
-    def __init__(self, model, 
-                 noise_type="instance",
-                 k=10, 
-                 noise_rate=0.4, 
-                 seed=1,
-                 G=10,
-                 cnt=15000,
-                 max_iter=400,
-                 local=False,
-                 loss='fw',
-                 num_epoch=1,
-                 min_similarity=0.0,
-                 Tii_offset=1.0,
-                 method='rank1'):
-        
+    def __init__(self, model):
         self.model = model
+
+
+    def find_label_issues(self, data, labels, **kwargs):
+        noise_type = kwargs['noise_type']
+        k = kwargs['k']
+        noise_rate = kwargs['noise_rate']
+        seed = kwargs['seed']
+        G = kwargs['G']
+        cnt = kwargs['cnt']
+        max_iter = kwargs['max_iter']
+        local = kwargs['local']
+        loss = kwargs['loss']
+        num_epoch = kwargs['num_epoch']
+        min_similarity = kwargs['min_similarity']
+        Tii_offset = kwargs['Tii_offset']
+        method = kwargs['method']
+
         self.config = global_var.SimiArgs(noise_rate=noise_rate,
                                         noise_type=noise_type,
                                         Tii_offset=Tii_offset,
@@ -40,7 +43,6 @@ class SimiFeat:
         self.config.device = self.model.device
 
 
-    def find_label_issues(self, data, labels):
         num_classes = np.unique(labels).shape[0]
         N = labels.shape[0]
         self.config.cnt = min(self.config.cnt, data.shape[0]//4)

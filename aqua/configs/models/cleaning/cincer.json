@@ -1,0 +1,9 @@
+{
+    "inspector": "random",
+    "threshold": 0,
+    "rng": null,
+    "no_ce": true,
+    "negotiator": "random",
+    "nfisher_radius": 0.1,
+    "return_suspiciousness": true
+}

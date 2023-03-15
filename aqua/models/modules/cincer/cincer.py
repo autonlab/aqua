@@ -9,9 +9,6 @@ from sklearn.utils import check_random_state, Bunch
 from sklearn.metrics import precision_recall_fscore_support as prfs
 from .negsup.negotiation import get_suspiciousness, find_counterexample
 
-from aqua.data import Aqdata, TestAqdata
-from torch.utils.data import DataLoader
-
 
 class CINCER:
     def __init__(self, model):
@@ -149,7 +146,15 @@ class CINCER:
         return mistake_inds
         
 
-    def find_label_issues(self, data, labels):
+    def find_label_issues(self, data, labels, **kwargs):
+        inspector = kwargs["inspector"]
+        threshold = kwargs["threshold"]
+        rng = kwargs["rng"]
+        no_ce = kwargs["no_ce"]
+        negotiator = kwargs["negotiator"]
+        nfisher_radius = kwargs["nfisher_radius"]
+        return_suspiciousness = kwargs["return_suspiciousness"]
+
         # Two splits of data to discover label issues
         N = data.shape[0]
         rand_inds = np.random.randint(0, N, size=N)
@@ -161,7 +166,13 @@ class CINCER:
         #data_test, labels_test = data.copy()[test_inds], labels.copy()[test_inds]
         te_lbl_issue_inds = self._negotiate(data.copy(), labels.copy(), 
                                             noisy_inds, test_inds,
-                                            inspector="margin")
+                                            inspector=inspector,
+                                            threshold=threshold,
+                                            rng=rng,
+                                            no_ce=no_ce,
+                                            negotiator=negotiator,
+                                            nfisher_radius=nfisher_radius,
+                                            return_suspiciousness=return_suspiciousness)
         
         # Pass 2 
         self.model.reinit_model(self.model.model_type, self.model.output_dim)
@@ -170,7 +181,13 @@ class CINCER:
         #data_test, labels_test = data.copy()[test_inds], labels.copy()[test_inds]
         te_lbl_issue_inds += self._negotiate(data.copy(), labels.copy(), 
                                             test_inds, noisy_inds,
-                                            inspector="margin")
+                                            inspector=inspector,
+                                            threshold=threshold,
+                                            rng=rng,
+                                            no_ce=no_ce,
+                                            negotiator=negotiator,
+                                            nfisher_radius=nfisher_radius,
+                                            return_suspiciousness=return_suspiciousness)
 
 
         mask = np.array([False]*data.shape[0])

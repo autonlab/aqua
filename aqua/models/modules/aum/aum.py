@@ -5,9 +5,6 @@ import pandas as pd
 # AUM imports
 from aum import AUMCalculator
 
-from aqua.data import Aqdata, TestAqdata
-from torch.utils.data import DataLoader
-
 
 class AUM:
     def __init__(self, model):
@@ -18,7 +15,7 @@ class AUM:
         self.model.reinit_model(self.model.model_type, self.model.output_dim+1)
 
 
-    def _fit_get_aum(self, thr_inds, alpha=0.99):
+    def _fit_get_aum(self, thr_inds):
         self._aum_calculator = AUMCalculator(os.getcwd())
         train_metrics = self.model.get_training_metrics()
         for i in range(len(train_metrics['output'])):
@@ -27,7 +24,7 @@ class AUM:
                                         train_metrics['sample_id'][i])
         self._aum_calculator.finalize()
         aum_file = pd.read_csv(os.path.join(os.getcwd(), 'aum_values.csv'))
-        thresh = np.percentile(aum_file.iloc[thr_inds]['aum'].values, 99)
+        thresh = np.percentile(aum_file.iloc[thr_inds]['aum'].values, self.alpha*100)
         #d_thresh = aum_file.iloc[thr_inds]['aum'].values
         mask = np.array([True]*aum_file.shape[0])  # Selects train indices only, discards THR indices
         mask[thr_inds] = False
@@ -35,7 +32,9 @@ class AUM:
         return np.array(aum_file.index)[mask][aum_file['aum'].values[mask] < thresh]
         
 
-    def find_label_issues(self, data, labels):
+    def find_label_issues(self, data, labels,
+                          **kwargs):
+        self.alpha = kwargs['alpha']
         # Refer to paper for training strategy
 
         # Randomly assign N/(c+1) data as the (c+1)th class
@@ -67,6 +66,7 @@ class AUM:
         # Re-instantiate the model with correct number of output neurons
         self.model.reinit_model(self.model.model_type, self.orig_dim)
         return mask
+    
     
     def fit(self, data, labels):        
         return self.model.fit(data, labels, 

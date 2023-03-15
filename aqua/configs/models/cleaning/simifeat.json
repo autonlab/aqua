@@ -1,0 +1,15 @@
+{
+    "noise_type": "instance",
+    "k": 10, 
+    "noise_rate": 0.4, 
+    "seed": 1,
+    "G": 10,
+    "cnt": 15000,
+    "max_iter": 400,
+    "local": false,
+    "loss": "fw",
+    "num_epoch": 1,
+    "min_similarity" :0.0,
+    "Tii_offset": 1.0,
+    "method":"both"
+}

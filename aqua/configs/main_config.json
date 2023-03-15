@@ -1,12 +1,15 @@
 {
     "datasets" : [
-        "cifar10"
+        "imdb"
     ],
     "methods" : [
-        "cleanlab",
-        "simifeat",
-        "cincer",
-        "aum"
+        "cleanlab"
     ],
-    "device" : "cuda:3"
+    "device" : "cuda:3",
+    "architecture" :{
+        "image" : "mobilenet_v2",
+        "text" : "roberta-base",
+        "time-series": "resnet1d",
+        "tabular": "random_forest"
+    }
 }

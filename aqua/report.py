@@ -17,6 +17,7 @@ from sklearn.metrics import f1_score
 
 def run_experiment_1(data_aq, 
                      data_aq_test, 
+                     architecture,
                      modality,
                      dataset, 
                      method,
@@ -27,11 +28,11 @@ def run_experiment_1(data_aq,
     # Define two different base models:
     # 1. B_1 that will be trained on noisy data
     # 2. B_2 that will be trained on data cleaned by a label cleaning method
-    noisy_base_model = TrainAqModel(modality, 'noisy', dataset, device)
-    clean_base_model = TrainAqModel(modality, 'noisy', dataset, device)
+    noisy_base_model = TrainAqModel(modality, architecture, 'noisy', dataset, device)
+    clean_base_model = TrainAqModel(modality, architecture, 'noisy', dataset, device)
 
     # Define the cleaning method
-    cleaning_method = TrainAqModel(modality, method, dataset, device)
+    cleaning_method = TrainAqModel(modality, architecture, method, dataset, device)
     clean_data, clean_labels, label_issues = cleaning_method.get_cleaned_labels(data_aq.data, data_aq.labels)
     
     # TODO : convert fit_predicts to fits
@@ -51,6 +52,9 @@ def generate_report(file=None):
 
     for dataset in main_config['datasets']:
         modality = data_configs[dataset]['modality']
+        architecture = main_config['architecture'][modality]
+
+        print(f"Modality: {modality},      Base Model's Architecture: {architecture}\n", file=file)
         data_results_dict = {}
 
         # TODO : ensure every data loading module returns a test dataset. Q : how to deal with datasets that dont have a test dataset
@@ -59,6 +63,7 @@ def generate_report(file=None):
         for method in main_config['methods']:
             label_issues = run_experiment_1(data_aq, 
                                             data_aq_test, 
+                                            architecture,
                                             modality, 
                                             dataset, 
                                             method,

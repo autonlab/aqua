@@ -2,8 +2,13 @@ import os, pickle
 import numpy as np
 import pandas as pd
 import torch
+import nltk
+nltk.download('punkt')
+
+from transformers import AutoTokenizer
 
 from aqua.data.process_data import Aqdata, TestAqdata
+from aqua.configs import main_config
 
 # Loads CIFAR 10 train
 def __load_cifar10_train(data_path):
@@ -54,7 +59,37 @@ def __load_cxr_train(data_path):
     filedir = '/home/extra_scratch/vsanil/aqua/datasets/cxr'
 
 
+def __load_imdb(data_path):
+    data_dict = {'text':[], 'target':[]}
 
+    # Load pos labels
+    pos_path = os.path.join(data_path, 'pos')
+    for filename in os.listdir(pos_path):
+        filepath = os.path.join(pos_path, filename)
+        with open(filepath, 'r') as f:
+            data_dict['text'].append(f.read().replace('\n','').strip())
+            data_dict['target'].append(1)
+
+    # Load neg labels
+    neg_path = os.path.join(data_path, 'neg')
+    for filename in os.listdir(neg_path):
+        filepath = os.path.join(neg_path, filename)
+        with open(filepath, 'r') as f:
+            data_dict['text'].append(f.read().replace('\n','').strip())
+            data_dict['target'].append(0)
+
+    return pd.DataFrame.from_dict(data_dict)
+
+def __preprocess(text_csv, tokenizer):
+    max_len = max([len(text) for text in text_csv.text])
+    #texts = [nltk.word_tokenize(text, language='english') for text in text_csv.text]
+    texts = [text for text in text_csv.text]
+    return [tokenizer(text, 
+                      padding='max_length', 
+                      max_length=max_len, 
+                      truncation=True, 
+                      return_tensors='np',
+                      is_split_into_words=False) for text in texts]
 
 #######################  LOAD FUNCTIONS ########################
 def load_cifar10(cfg):
@@ -68,3 +103,29 @@ def load_cifar10(cfg):
 
     return Aqdata(data_cifar, label_cifar, labels_annot), Aqdata(data_cifar_test, label_cifar_test, labels_annot_test)
     
+
+def load_imdb(cfg):
+    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'], add_prefix_space=True)
+    # Load train data
+    csv_path = os.path.join(cfg['train']['data'], 'train_csv.csv')
+    if not os.path.exists(csv_path):
+        train_csv = __load_imdb(cfg['train']['data'])
+        train_csv.to_csv(csv_path, index=False)
+    else:
+        train_csv = pd.read_csv(csv_path)
+    feat_texts, train_labels = __preprocess(train_csv.dropna(), tokenizer=tokenizer), train_csv.dropna().target.values
+    train_tokens = np.concatenate([f['input_ids'] for f in feat_texts], axis=0)
+    train_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)
+
+    # Load test data
+    csv_path = os.path.join(cfg['test']['data'], 'test_csv.csv')
+    if not os.path.exists(csv_path):
+        test_csv = __load_imdb(cfg['test']['data'])
+        test_csv.to_csv(csv_path, index=False)
+    else:
+        test_csv = pd.read_csv(csv_path)
+    feat_texts, test_labels = __preprocess(test_csv.dropna(), tokenizer=tokenizer), test_csv.dropna().target.values
+    test_tokens = np.concatenate([f['input_ids'] for f in feat_texts], axis=0)
+    test_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)
+
+    return Aqdata(train_tokens, train_labels, attention_mask=train_attention_masks), Aqdata(test_tokens, test_labels, attention_mask=test_attention_masks)

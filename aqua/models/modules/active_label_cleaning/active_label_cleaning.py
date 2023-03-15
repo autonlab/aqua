@@ -15,13 +15,18 @@ class ActiveLabelCleaning:
     def __init__(self, model, selector='Oracle',
                  temperature=8.0,
                  noise_offset=0.0):
+        
         self.model = model
         self.selector = selector
         self.temperature = temperature
         self.noise_offset = noise_offset
         #if config is None:
 
-    def find_label_issues(self, data, labels):
+    def find_label_issues(self, data, labels, **kwargs):
+        self.selector = kwargs['selector']
+        self.temperature = kwargs['temperature']
+        self.noise_offset= kwargs['noise_offset']
+
         n_samples = data.shape[0]
         n_classes = np.unique(labels).shape[0]
         if labels.ndim == 2:
