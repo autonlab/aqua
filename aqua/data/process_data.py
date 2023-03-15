@@ -11,6 +11,7 @@ class Aqdata(Dataset):
         self.data = data
         self.labels = ground_labels
         self.corrected_labels = corrected_labels
+        self.kwargs = kwargs
         self.attention_masks = None
 
         # Additional capability to add noise
@@ -19,6 +20,18 @@ class Aqdata(Dataset):
         self.noise_prior = None
         self.noise_or_not = np.array([False]*data.shape[0]) # Keeps track of labels purposefully corrupted by noise
         if 'attention_mask' in kwargs: self.attention_masks = kwargs['attention_mask']
+
+    def clean_data(self, label_issues):
+        self.data = self.data[~label_issues]
+        self.labels = self.labels[~label_issues]
+        if self.attention_masks is not None: 
+            self.attention_masks = self.attention_masks[~label_issues]
+
+    def set_inds(self, inds):
+        self.data = self.data[inds]
+        self.labels = self.labels[inds]
+        if self.attention_masks is not None:
+            self.attention_masks = self.attention_masks[inds]
     
     def add_noise(self, data, labels):
         raise NotImplementedError
@@ -32,10 +45,9 @@ class Aqdata(Dataset):
         if self.corrected_labels is not None:
             return_args.append(self.corrected_labels[idx])
         else:
-            return_args.append(None)
+            return_args.append('None')
 
-        if self.attention_masks is not None: return_args.append(self.attention_masks[idx])
-            
+        if self.attention_masks is not None: return_args.append(self.attention_masks[idx])        
         return tuple(return_args)
         
 

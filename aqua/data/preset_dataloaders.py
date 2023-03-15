@@ -47,7 +47,7 @@ def __load_cifar10H_softlabels(label_path, agreement_threshold=0.5):
     # Here correct_guess == 1 represents that label was guessed correctly
     anot_1 = pd.pivot_table(labels, values=['correct_guess'], index='cifar10_test_test_idx', aggfunc=lambda x: 1 if x.mean() >= agreement_threshold else 0)
     anot_1 = anot_1.rename(columns={'correct_guess':'labels'})
-    return anot_1.sort_index().reset_index()
+    return anot_1.sort_index().reset_index()['labels'].values
 
 
 def __load_cifar10N_softlabels(label_path):
@@ -105,7 +105,7 @@ def load_cifar10(cfg):
     
 
 def load_imdb(cfg):
-    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'], add_prefix_space=True)
+    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'], add_prefix_space=True, truncation=True, model_max_length=400)
     # Load train data
     csv_path = os.path.join(cfg['train']['data'], 'train_csv.csv')
     if not os.path.exists(csv_path):
@@ -113,6 +113,8 @@ def load_imdb(cfg):
         train_csv.to_csv(csv_path, index=False)
     else:
         train_csv = pd.read_csv(csv_path)
+
+    train_csv = pd.concat([train_csv[train_csv.target == 0].iloc[:10], train_csv[train_csv.target == 1].iloc[:10]])
     feat_texts, train_labels = __preprocess(train_csv.dropna(), tokenizer=tokenizer), train_csv.dropna().target.values
     train_tokens = np.concatenate([f['input_ids'] for f in feat_texts], axis=0)
     train_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)
@@ -124,6 +126,7 @@ def load_imdb(cfg):
         test_csv.to_csv(csv_path, index=False)
     else:
         test_csv = pd.read_csv(csv_path)
+    test_csv = pd.concat([test_csv[test_csv.target == 0].iloc[:10], test_csv[test_csv.target == 1].iloc[:10]])
     feat_texts, test_labels = __preprocess(test_csv.dropna(), tokenizer=tokenizer), test_csv.dropna().target.values
     test_tokens = np.concatenate([f['input_ids'] for f in feat_texts], axis=0)
     test_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)

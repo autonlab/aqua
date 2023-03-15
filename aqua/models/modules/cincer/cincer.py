@@ -1,4 +1,4 @@
-import torch
+import torch, copy
 import numpy as np
 
 # CINCER imports
@@ -27,7 +27,7 @@ class CINCER:
         ece = ecefunc.compute()
         return pr, rc, f1, ece.numpy()
 
-    def _negotiate(self, data, labels,
+    def _negotiate(self, data_aq,
                     kn, inds,
                     inspector="random",
                     threshold=0,
@@ -41,6 +41,7 @@ class CINCER:
         rng = check_random_state(rng)
 
         radius = None
+        data, labels = data_aq.data, data_aq.labels
         if negotiator == 'nearest_fisher':
             dist = pdist(data.ravel().reshape(data.shape[0], -1))
             max_dist = np.max(dist)
@@ -146,7 +147,8 @@ class CINCER:
         return mistake_inds
         
 
-    def find_label_issues(self, data, labels, **kwargs):
+    def find_label_issues(self, data_aq, **kwargs):
+        data, labels = data_aq.data, data_aq.labels
         inspector = kwargs["inspector"]
         threshold = kwargs["threshold"]
         rng = kwargs["rng"]
@@ -161,10 +163,12 @@ class CINCER:
         
         # Pass 1 
         noisy_inds, test_inds = rand_inds[:N//2], rand_inds[N//2:]
-        data_train, labels_train = data.copy()[noisy_inds], labels.copy()[noisy_inds]
-        self.fit(data_train, labels_train)
-        #data_test, labels_test = data.copy()[test_inds], labels.copy()[test_inds]
-        te_lbl_issue_inds = self._negotiate(data.copy(), labels.copy(), 
+        temp_data_aq = copy.deepcopy(data_aq)
+        temp_data_aq_test = copy.deepcopy(data_aq)
+        temp_data_aq.set_inds(noisy_inds)
+        temp_data_aq_test.set_inds(test_inds)
+        self.fit(temp_data_aq)
+        te_lbl_issue_inds = self._negotiate(temp_data_aq, 
                                             noisy_inds, test_inds,
                                             inspector=inspector,
                                             threshold=threshold,
@@ -195,13 +199,13 @@ class CINCER:
 
         return mask
 
-    def fit(self, data, labels):
-        return self.model.fit(data, labels,
+    def fit(self, data_aq):
+        return self.model.fit(data_aq,
                               lr_tune=True,
                               early_stop=True)
 
-    def predict(self, data):
-        return self.model.predict(data)
+    def predict(self, data_aq):
+        return self.model.predict(data_aq)
 
-    def predict_proba(self, data):
-        return self.model.predict_proba(data)
+    def predict_proba(self, data_aq):
+        return self.model.predict_proba(data_aq)

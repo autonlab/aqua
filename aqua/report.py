@@ -1,4 +1,4 @@
-import os, json
+import os, json, copy
 import torch 
 import numpy as np
 import pandas as pd
@@ -33,13 +33,15 @@ def run_experiment_1(data_aq,
 
     # Define the cleaning method
     cleaning_method = TrainAqModel(modality, architecture, method, dataset, device)
-    clean_data, clean_labels, label_issues = cleaning_method.get_cleaned_labels(data_aq.data, data_aq.labels)
+    label_issues = cleaning_method.find_label_issues(data_aq)
     
-    # TODO : convert fit_predicts to fits
-    noisy_base_model.fit_predict(data_aq.data, data_aq.labels)
-    clean_base_model.fit_predict(clean_data, clean_labels)
+    # Clean the data 
+    data_aq_clean = copy.deepcopy(data_aq)
+    data_aq_clean.clean_data(label_issues)
+    noisy_base_model.fit_predict(data_aq)
+    clean_base_model.fit_predict(data_aq_clean)
 
-    noisy_test_labels, clean_test_labels = noisy_base_model.predict(data_aq_test.data), clean_base_model.predict(data_aq_test.data)
+    noisy_test_labels, clean_test_labels = noisy_base_model.predict(data_aq_test), clean_base_model.predict(data_aq_test)
 
     print(f"Cleaning method: {method}, Uncleaned Model's F1 Score:", round(f1_score(noisy_test_labels, data_aq_test.labels, average='weighted'), 6), "Cleaned Model's F1 Score:", round(f1_score(clean_test_labels, data_aq_test.labels, average='weighted'), 6), file=file)
 

@@ -1,6 +1,6 @@
 {
     "datasets" : [
-        "imdb"
+        "cifar10"
     ],
     "methods" : [
         "cleanlab"

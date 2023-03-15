@@ -42,7 +42,8 @@ class ConvNet(torch.nn.Module):
         
         return None, 0
 
-    def forward(self, x, return_feats=False):
+    def forward(self, x, **kwargs):
+        return_feats = False if 'return_feats' not in kwargs else kwargs['return_feats']
         feats = self.model(x)
         x = self.linear(feats)
         if not return_feats:
@@ -59,14 +60,19 @@ class BertNet(torch.nn.Module):
         self.fc2 = torch.nn.Linear(100, output_dim)
         self.relu = torch.nn.ReLU()
 
-    def forward(self, input_ids, attention_mask, return_feats=False):
-        feats = self.model(input_ids=input_ids,
+    def forward(self, x, **kwargs):
+        attention_mask = kwargs['attention_mask']
+        return_feats = False if 'return_feats' not in kwargs else kwargs['return_feats']
+        feats = self.model(input_ids=x,
                            attention_mask=attention_mask)[0][:,0]
         x = self.fc1(feats)
         x = self.relu(x)
 
         x = self.fc2(x)
-        return x
+        if not return_feats:
+            return x
+        else:
+            return x, return_feats
 
 
 
@@ -188,14 +194,18 @@ class ImageNet(BaseNet):
         loss.backward()
         optimizer.step()
 
-    def fit(self, data, labels, 
+    def fit(self, *args, 
             lr_tune=False,
-            early_stop=False):
+            early_stop=False,
+            data_kwargs={}):
         """
         Please refer to: https://github.com/cleanlab/cleanlab/blob/master/cleanlab/experimental/mnist_pytorch.py
         """
-        dataset = Aqdata(data, labels)
-        trainloader = DataLoader(dataset,
+        if isinstance(args[0], Aqdata):
+            data_aq = args[0]
+        else:
+            data_aq = Aqdata(args[0], args[1], **data_kwargs)
+        trainloader = DataLoader(data_aq,
                                  batch_size=self.batch_size,
                                  shuffle=True,
                                  num_workers=4)
@@ -224,10 +234,9 @@ class ImageNet(BaseNet):
                 if early_stop and (scheduler.get_last_lr()[-1] < self.lr):
                     break
     
-    def predict_proba(self, data):
-        if data.shape[0] != 1:
-            dataset = TestAqdata(data)
-            testloader = DataLoader(dataset,
+    def predict_proba(self, data_aq):
+        if isinstance(data_aq, TestAqdata):
+            testloader = DataLoader(data_aq,
                                     batch_size=self.batch_size,
                                     num_workers=4)
             preds = []
@@ -237,8 +246,18 @@ class ImageNet(BaseNet):
                 preds.append(self.model(data))
 
             return torch.nn.Softmax(dim=1)(torch.vstack(preds)).detach().cpu().numpy()
+        elif isinstance(data_aq, Aqdata):
+            testloader = DataLoader(data_aq,
+                                    batch_size=self.batch_size,
+                                    num_workers=4)
+            preds = []
+            self.model.eval()
+            for batch_idx, (data, _, idx, _) in enumerate(testloader):
+                data = data.float().to(self.device)
+                preds.append(self.model(data))
+            return torch.nn.Softmax(dim=1)(torch.vstack(preds)).detach().cpu().numpy()
         else:
-            return torch.nn.Softmax(dim=1)(self.model(torch.from_numpy(data).float().to(self.device))).detach().cpu().numpy()
+            return torch.nn.Softmax(dim=1)(self.model(torch.from_numpy(data_aq).float().to(self.device))).detach().cpu().numpy()
 
     def predict(self, data):
         self.model.eval()
@@ -317,7 +336,7 @@ class TextNet(BaseNet):
         data, target, attention_mask = data.float(), target.long(), attention_mask.long()
         data, target, attention_mask = data.to(device), target.to(device), attention_mask.to(device)
         optimizer.zero_grad()
-        preds = model(data, attention_mask)
+        preds = model(data, attention_mask=attention_mask)
 
         # Save training metrics
         self.train_metrics['output'].append(preds.cpu().detach())
@@ -328,14 +347,18 @@ class TextNet(BaseNet):
         loss.backward()
         optimizer.step()
 
-    def fit(self, data, labels, 
+    def fit(self, *args, 
             lr_tune=False,
-            early_stop=False):
+            early_stop=False,
+            data_kwargs={}):
         """
         Please refer to: https://github.com/cleanlab/cleanlab/blob/master/cleanlab/experimental/mnist_pytorch.py
         """
-        dataset = Aqdata(data, labels)
-        trainloader = DataLoader(dataset,
+        if isinstance(args[0], Aqdata):
+            data_aq = args[0]
+        else:
+            data_aq = Aqdata(args[0], args[1], **data_kwargs)
+        trainloader = DataLoader(data_aq,
                                  batch_size=self.batch_size,
                                  shuffle=True,
                                  num_workers=4)
@@ -364,22 +387,30 @@ class TextNet(BaseNet):
                 if early_stop and (scheduler.get_last_lr()[-1] < self.lr):
                     break
     
-    def predict_proba(self, data):
-        if data.shape[0] != 1:
-            dataset = TestAqdata(data)
-            testloader = DataLoader(dataset,
+    def predict_proba(self, data_aq):
+        if isinstance(data_aq, TestAqdata):
+            testloader = DataLoader(data_aq,
                                     batch_size=self.batch_size,
                                     num_workers=4)
             preds = []
             self.model.eval()
             for batch_idx, (data, idx, attention_mask) in enumerate(testloader):
                 data = data.float().to(self.device)
-                attention_mask = attention_mask.long().to(self.device)
                 preds.append(self.model(data, attention_mask))
 
             return torch.nn.Softmax(dim=1)(torch.vstack(preds)).detach().cpu().numpy()
+        elif isinstance(data_aq, Aqdata):
+            testloader = DataLoader(data_aq,
+                                    batch_size=self.batch_size,
+                                    num_workers=4)
+            preds = []
+            self.model.eval()
+            for batch_idx, (data, _, idx, _, attention_mask) in enumerate(testloader):
+                data = data.float().to(self.device)
+                preds.append(self.model(data, attention_mask))
+            return torch.nn.Softmax(dim=1)(torch.vstack(preds)).detach().cpu().numpy()
         else:
-            return torch.nn.Softmax(dim=1)(self.model(torch.from_numpy(data).float().to(self.device))).detach().cpu().numpy()
+            return torch.nn.Softmax(dim=1)(self.model(torch.from_numpy(data_aq).float().to(self.device))).detach().cpu().numpy()
 
     def predict(self, data):
         self.model.eval()

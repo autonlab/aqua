@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import sklearn
+import copy
 from sklearn.model_selection import train_test_split
 
 # Base model imports
@@ -49,36 +50,33 @@ class AqModel:
         elif method == 'noisy':
             self.wrapper_model = self.model
 
-    def get_cleaned_labels(self, data, label):
+    def find_label_issues(self, data_aq):
         if self.method == 'noisy':
             raise RuntimeError("get_cleaned_labels cannot be implemented with noisy method")
         
         cleaning_model_config = model_configs['cleaning'][self.method]
-        label_issues = self.wrapper_model.find_label_issues(data, label, **cleaning_model_config)
+        label_issues = self.wrapper_model.find_label_issues(data_aq, **cleaning_model_config)
             
         # Label issues must be False if no issue, True if there is an issue
-        data, label = data[~label_issues], label[~label_issues]
-        return data, label, label_issues
+        return label_issues
     
 
-    def _split_data(self, data, 
-                          labels,
+    def _split_data(self, data_aq,
                           test_size = 0.25, 
                           random_state = 0):
-        data_train, data_val, labels_train, labels_val = train_test_split(data,
-                                                                          labels,
-                                                                          test_size=test_size,
-                                                                          random_state=random_state)
+        val_data_aq = copy.deepcopy(data_aq)
+        train_inds, val_inds = train_test_split(np.arange(data_aq.data.shape[0]),
+                                                test_size=test_size,
+                                                random_state=random_state)
+        
+        data_aq.set_inds(train_inds)
+        val_data_aq.set_inds(val_inds)
 
-        return data_train, data_val, labels_train, labels_val
+        return data_aq, val_data_aq
 
 
-    def predict(self, data, model=None):
-        if model is not None:
-            self.wrapper_model = model
-        if self.method in ['cleanlab', 'noisy']:
-            # TODO: will all label error methods follow sklearn classifier schema?
-            return self.wrapper_model.predict(data)
+    def predict(self, data_aq):
+        return self.model.predict(data_aq)
 
 
 
@@ -87,23 +85,21 @@ class TrainAqModel(AqModel):
         super().__init__(modality, architecture, method, dataset, device)
         # Train should only support fit/fit_predict ?
 
-    def fit(self, data, labels):
-        if self.method in ['cleanlab', 'noisy']:
-            self.wrapper_model.fit(data, labels)
+    def fit(self, data_aq):
+        self.model.fit(data_aq)
 
-    def predict(self, data):
-        return super().predict(data)
+    def predict(self, data_aq):
+        return super().predict(data_aq)
 
-    def fit_predict(self, data, labels, return_val_labels=False):
-        train_data, val_data, train_labels, val_labels = self._split_data(data, 
-                                                                          labels)
+    def fit_predict(self, data_aq, return_val_labels=False):
+        train_data_aq, val_data_aq = self._split_data(data_aq)
 
-        self.fit(train_data, train_labels)
+        self.fit(train_data_aq)
 
         if not return_val_labels:
-            return self.predict(val_data)
+            return self.predict(val_data_aq)
         else:
-            return self.predict(val_data), val_labels
+            return self.predict(val_data_aq), val_data_aq.labels
 
 
 # TODO (vedant, mononito) : please review this
@@ -112,8 +108,8 @@ class TestAqModel(AqModel):
         super().__init__(modality, method)
         self.model = model
 
-    def predict(self, data):
-        return super().predict(data)
+    def predict(self, data_aq):
+        return super().predict(data_aq)
 
 
 

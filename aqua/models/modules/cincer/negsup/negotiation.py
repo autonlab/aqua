@@ -7,15 +7,16 @@ from sklearn.utils import check_random_state
 from aqua.models.modules.cincer.negsup.fisher import *
 
 
-def get_margin(model, X, y, i):
+def get_margin(model, data_aq, i):
     """Computes the margin of an example wrt a model."""
+    X, y = data_aq.data, data_aq.labels
     x = X[i:i+1]
     phat = model.predict_proba(x)
     yhat = np.argmax(phat)
     return phat[0, yhat] - phat[0, y[i]]
 
 def get_suspiciousness(model,
-                       X_tr, y_tr,
+                       data_aq,
                        kn,
                        i,
                        n_labels,
@@ -44,7 +45,7 @@ def get_suspiciousness(model,
     elif inspector == 'never':
         return np.inf
     elif inspector == 'margin':
-        return get_margin(model, X_tr, y_tr, i)
+        return get_margin(model, data_aq, i)
     elif inspector == 'gradient':
         raise NotImplementedError
         #return get_expected_gradient_len(model, X_tr, y_tr, i, n_labels)
