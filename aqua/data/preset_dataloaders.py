@@ -5,7 +5,7 @@ import torch
 import nltk
 nltk.download('punkt')
 
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, RobertaTokenizer
 
 from aqua.data.process_data import Aqdata, TestAqdata
 from aqua.configs import main_config
@@ -86,7 +86,7 @@ def __preprocess(text_csv, tokenizer):
     texts = [text for text in text_csv.text]
     return [tokenizer(text, 
                       padding='max_length', 
-                      max_length=max_len, 
+                      max_length=514, 
                       truncation=True, 
                       return_tensors='np',
                       is_split_into_words=False) for text in texts]
@@ -105,7 +105,7 @@ def load_cifar10(cfg):
     
 
 def load_imdb(cfg):
-    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'], add_prefix_space=True, truncation=True, model_max_length=400)
+    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'], model_max_length=514)
     # Load train data
     csv_path = os.path.join(cfg['train']['data'], 'train_csv.csv')
     if not os.path.exists(csv_path):

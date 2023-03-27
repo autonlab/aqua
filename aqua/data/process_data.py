@@ -46,8 +46,11 @@ class Aqdata(Dataset):
             return_args.append(self.corrected_labels[idx])
         else:
             return_args.append('None')
-
-        if self.attention_masks is not None: return_args.append(self.attention_masks[idx])        
+        
+        # Add all misc model specific kwargs here
+        misc_kwargs = {}
+        if self.attention_masks is not None: misc_kwargs['attention_mask'] = self.attention_masks[idx]
+        return_args.append(misc_kwargs)       
         return tuple(return_args)
         
 
@@ -63,5 +66,10 @@ class TestAqdata(Dataset):
 
     def __getitem__(self, idx):
         return_args = [self.data[idx], idx]
-        if self.attention_masks is not None: return_args.append(self.attention_masks[idx])
+
+        # Add all misc model specific kwargs here
+        misc_kwargs = {}
+        if self.attention_masks is not None: misc_kwargs['attention_mask'] = self.attention_masks[idx]
+        return_args.append(misc_kwargs)  
+        
         return tuple(return_args)

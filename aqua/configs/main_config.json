@@ -3,9 +3,9 @@
         "cifar10"
     ],
     "methods" : [
-        "cleanlab"
+        "cincer"
     ],
-    "device" : "cuda:3",
+    "device" : "cuda:0",
     "architecture" :{
         "image" : "mobilenet_v2",
         "text" : "roberta-base",

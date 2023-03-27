@@ -5,35 +5,43 @@ import copy
 from sklearn.model_selection import train_test_split
 
 # Base model imports
-from aqua.models.presets import ImageNet, TextNet
+from aqua.models.presets import AqNet
 #from aqua.models.cleaning_models import AUM, CINCER, ActiveLabelCleaning, SimiFeat
 from aqua.data import Aqdata, TestAqdata
 
 # Cleaning model imports
-from aqua.models.modules import *
+from aqua.models.cleaning_modules import *
 from aqua.configs import main_config, data_configs, model_configs
 
 
 METHODS = main_config['methods']
 
 class AqModel:
-    def __init__(self, modality, 
+    def __init__(self, model,
                        architecture,
                        method, 
                        dataset,
                        device='cpu'):
-        if modality == 'image':
-            self.model = ImageNet(architecture,
-                                 epochs=1,
-                                 output_dim=data_configs[dataset]['out_classes'],
-                                 device=device)
-        elif modality == 'text':
-            self.model = TextNet(architecture,
-                                 epochs=1,
-                                 output_dim=data_configs[dataset]['out_classes'],
-                                 device=device)
-        else:
-            raise RuntimeError(f"Incorrect modality: {modality}")
+        print("Model has been initialized")
+        # if modality == 'image':
+        #     self.model = ImageNet(architecture,
+        #                          epochs=1,
+        #                          output_dim=data_configs[dataset]['out_classes'],
+        #                          device=device)
+        # elif modality == 'text':
+        #     self.model = TextNet(architecture,
+        #                          epochs=1,
+        #                          output_dim=data_configs[dataset]['out_classes'],
+        #                          device=device)
+        # else:
+        #     raise RuntimeError(f"Incorrect modality: {modality}")
+        self.model = AqNet(model, 
+                           output_dim=data_configs[dataset]['out_classes'],
+                           epochs=model_configs[architecture]['epochs'],
+                           batch_size=model_configs[architecture]['batch_size'],
+                           lr=model_configs[architecture]['batch_size'],
+                           lr_drops=model_configs[architecture]['batch_size'],
+                           device=device)
         self.method = method
 
         # Add a wrapper over base model
@@ -64,40 +72,41 @@ class AqModel:
     def _split_data(self, data_aq,
                           test_size = 0.25, 
                           random_state = 0):
+        train_data_aq = copy.deepcopy(data_aq)
         val_data_aq = copy.deepcopy(data_aq)
         train_inds, val_inds = train_test_split(np.arange(data_aq.data.shape[0]),
                                                 test_size=test_size,
                                                 random_state=random_state)
         
-        data_aq.set_inds(train_inds)
+        train_data_aq.set_inds(train_inds)
         val_data_aq.set_inds(val_inds)
 
-        return data_aq, val_data_aq
-
-
-    def predict(self, data_aq):
-        return self.model.predict(data_aq)
+        return train_data_aq, val_data_aq
 
 
 
 class TrainAqModel(AqModel):
     def __init__(self, modality, architecture, method, dataset, device='cpu'):
         super().__init__(modality, architecture, method, dataset, device)
+        print("TrainAqModel has been initialized")
         # Train should only support fit/fit_predict ?
 
     def fit(self, data_aq):
         self.model.fit(data_aq)
 
     def predict(self, data_aq):
-        return super().predict(data_aq)
+        return self.model.predict(data_aq)
 
     def fit_predict(self, data_aq, return_val_labels=False):
-        train_data_aq, val_data_aq = self._split_data(data_aq)
+        if return_val_labels:
+            train_data_aq, val_data_aq = self._split_data(data_aq)
+        else:
+            train_data_aq = copy.deepcopy(data_aq)
 
         self.fit(train_data_aq)
 
         if not return_val_labels:
-            return self.predict(val_data_aq)
+            return self.predict(train_data_aq)
         else:
             return self.predict(val_data_aq), val_data_aq.labels
 
@@ -109,7 +118,7 @@ class TestAqModel(AqModel):
         self.model = model
 
     def predict(self, data_aq):
-        return super().predict(data_aq)
+        return self.model.predict(data_aq)
 
 
 

@@ -4,10 +4,9 @@ aum
 torch
 scikit-image 
 pydicom
-pytorch-lightning==1.5.5
-yacs==0.1.8
-torchvision==0.11.1
-lightning-bolts==0.4.0
-torchmetrics==0.6.0
+pytorch-lightning
+yacs
+lightning-bolts
+torchmetrics
 transformers
 nltk
