@@ -1,0 +1,9 @@
+{
+    "epochs": 1,
+    "batch_size": 64,
+    "lr": 0.01,
+    "lr_drops": [],
+    "n_feature_maps": 64,
+    "verbose": false,
+    "weight_path": null
+}

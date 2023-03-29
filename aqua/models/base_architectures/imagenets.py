@@ -2,7 +2,7 @@ import torch
 from aqua.models.base_architectures.base_utils import *
 
 class ConvNet(torch.nn.Module):
-    def __init__(self, model_type, output_dim):
+    def __init__(self, model_type, output_dim, **kwargs):
         super(ConvNet, self).__init__()
         self.model, final_dim = self._get_model(model_type)
         self.linear = torch.nn.Linear(final_dim, output_dim)
@@ -16,11 +16,8 @@ class ConvNet(torch.nn.Module):
             return getMobilenetv2(), 1000
         else:
             raise RuntimeWarning(f"Given model type: {model_type} is not supported")
-        
-        return None, 0
 
-    def forward(self, x, **kwargs):
-        return_feats = False if 'return_feats' not in kwargs else kwargs['return_feats']
+    def forward(self, x, kwargs={}, return_feats=False):
         feats = self.model(x)
         x = self.linear(feats)
         if not return_feats:

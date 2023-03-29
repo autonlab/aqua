@@ -1,12 +1,12 @@
-import os, json, copy
+import os, json, copy, logging
 import torch 
 import numpy as np
 import pandas as pd
 
 from aqua.models import TrainAqModel, TestAqModel
-from aqua.configs import main_config, data_configs
+from aqua.configs import main_config, data_configs, model_configs
 import aqua.data.preset_dataloaders as presets
-from aqua.models.base_architectures import ConvNet, BertNet
+from aqua.models.base_architectures import ConvNet, BertNet, TabularNet, TimeSeriesNet
 
 from sklearn.metrics import f1_score
 
@@ -18,33 +18,31 @@ import pdb
 #     'cifar10' : load_cifar(cfg['data'])
 # }
 
-def debug(data_aq,
-          data_aq_test,
-          architecture,
-          modality,
-          dataset,
-          method,
-          device='cuda:0',
-          file=None):
-    
-    base_model = ConvNet(main_config['architecture'][modality])
-    clean_base_model = copy.deepcopy(base_model)
-    
-    base_model = TrainAqModel(modality, architecture, 'noisy', dataset, device)
-    clean_base_model = copy.deepcopy(base_model)
-    
+model_dict = {
+    'image': ConvNet,
+    'text': BertNet,
+    'timeseries': TimeSeriesNet,
+    'tabular': TabularNet
+}
 
-    #pdb.set_trace()
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
-    base_model.fit_predict(copy.deepcopy(data_aq))
-    #noisy_test_labels = base_model.predict(copy.deepcopy(data_aq_test))
 
-    clean_base_model.fit_predict(copy.deepcopy(data_aq))
-    #noisy_test_labels = base_model.predict(copy.deepcopy(data_aq_test))
-    clean_test_labels = clean_base_model.predict(copy.deepcopy(data_aq_test))
+def get_optimizer(model, architecture):
+    """
+    Initialize a new optimizer for a new model
+    """
+    if 'momentum' in model_configs['base'][architecture]:
+        optim = torch.optim.SGD(model.parameters(),
+                                      lr=model_configs['base'][architecture]['lr'],
+                                      momentum=model_configs['base'][architecture]['momentum'])
+    else:
+        optim = torch.optim.Adam(model.parameters(),
+                                       lr=model_configs['base'][architecture]['lr'])
+    return optim
 
-    #print("Noisy model f1 score: ", round(f1_score(noisy_test_labels, data_aq_test.labels, average='weighted'), 6), "Clean model f1 score: ", round(f1_score(clean_test_labels, data_aq_test.labels, average='weighted'), 6))
-    print("Noisy model f1 score: ", round(f1_score(clean_test_labels, data_aq_test.labels, average='weighted'), 6))
+
 
 def run_experiment_1(data_aq, 
                      data_aq_test, 
@@ -59,25 +57,72 @@ def run_experiment_1(data_aq,
     # Define two different base models:
     # 1. B_1 that will be trained on noisy data
     # 2. B_2 that will be trained on data cleaned by a label cleaning method
-    noisy_base_model = TrainAqModel(modality, architecture, 'noisy', dataset, device)
-    clean_base_model = TrainAqModel(modality, architecture, 'noisy', dataset, device)
-
-    # Define the cleaning method
-    cleaning_method = TrainAqModel(modality, architecture, method, dataset, device)
-    label_issues = cleaning_method.find_label_issues(data_aq)
     
+    # TODO (vedant) : Optimizers need to be defined outside the class otherwise
+    # they share training for some reason. This behaviour needs to be verified
+
+    # Define a noisy model and train it
+    noisy_base_model = model_dict[modality](main_config['architecture'][modality], 
+                         output_dim=data_configs[dataset]['out_classes'],
+                         **model_configs['base'][architecture])
+    noisy_optim = get_optimizer(noisy_base_model, architecture)
+    noisy_base_model = TrainAqModel(noisy_base_model, 
+                                    architecture, 
+                                    'noisy', 
+                                    dataset, 
+                                    device,
+                                    noisy_optim)
+    noisy_base_model.fit_predict(copy.deepcopy(data_aq))
+    noisy_test_labels = noisy_base_model.predict(copy.deepcopy(data_aq_test))
+    logging.debug("Base model trained on noisy data")
+
+    del noisy_base_model
+    del noisy_optim
+
+
+    # Define the cleaning method that will detect label issues
+    extra_dim = 1 if method == 'aum' else 0
+    cleaning_base_model = model_dict[modality](main_config['architecture'][modality], 
+                         output_dim=data_configs[dataset]['out_classes']+extra_dim,
+                         **model_configs['base'][architecture])
+    cleaning_optim = get_optimizer(cleaning_base_model, architecture)
+    cleaning_base_model = TrainAqModel(cleaning_base_model, 
+                                        architecture, 
+                                        method, 
+                                        dataset, 
+                                        device,
+                                        cleaning_optim)
+    label_issues = cleaning_base_model.find_label_issues(copy.deepcopy(data_aq))
+    
+    del cleaning_optim
+    del cleaning_base_model
+    logger.debug("Label issues detected")
+
+
     # Clean the data 
     data_aq_clean = copy.deepcopy(data_aq)
     data_aq_clean.clean_data(label_issues)
-    noisy_base_model.fit_predict(data_aq)
-    clean_base_model.fit_predict(data_aq_clean)
+    logger.debug("Data cleaned using detected label issues")
 
-    noisy_test_labels, clean_test_labels = noisy_base_model.predict(data_aq_test), clean_base_model.predict(data_aq_test)
+    # Train a new model on cleaned data
+    clean_base_model = model_dict[modality](main_config['architecture'][modality], 
+                         output_dim=data_configs[dataset]['out_classes'],
+                         **model_configs['base'][architecture])
+    clean_optim = get_optimizer(clean_base_model, architecture)
+    clean_base_model = TrainAqModel(clean_base_model, 
+                                    architecture, 
+                                    'noisy', 
+                                    dataset, 
+                                    device,
+                                    clean_optim)
+    clean_base_model.fit_predict(data_aq_clean)
+    clean_test_labels = clean_base_model.predict(copy.deepcopy(data_aq_test))
+
+    del clean_optim
+    del clean_base_model
+    logger.debug("Base model trained on cleaned data")
 
     print(f"Cleaning method: {method}, Uncleaned Model's F1 Score:", round(f1_score(noisy_test_labels, data_aq_test.labels, average='weighted'), 6), "Cleaned Model's F1 Score:", round(f1_score(clean_test_labels, data_aq_test.labels, average='weighted'), 6), file=file)
-
-    del noisy_base_model
-    del clean_base_model
 
     return label_issues
 
@@ -97,7 +142,8 @@ def generate_report(file=None):
         data_aq, data_aq_test = getattr(presets, f'load_{dataset}')(data_configs[dataset])
 
         for method in main_config['methods']:
-            label_issues = debug(data_aq, 
+            logging.info(f"\n\nRunning {method} on dataset {dataset} with a base architecture")
+            label_issues = run_experiment_1(data_aq, 
                                             data_aq_test, 
                                             architecture,
                                             modality, 
@@ -106,7 +152,7 @@ def generate_report(file=None):
                                             device=main_config['device'],
                                             file=file)
             
-            #data_results_dict[method] = label_issues.tolist()
+            data_results_dict[method] = label_issues.tolist()
 
         # Check if human annotated labels are available
         

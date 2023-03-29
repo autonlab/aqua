@@ -1,0 +1,23 @@
+{
+    "train" : {
+        "data" : "/zfsauton/data/public/vsanil/aqua/datasets/mit-bih/",
+        "labels" : null,
+        "annot_labels" : null
+    },
+    "val" : {
+        "data" : null,
+        "labels" : null,
+        "annot_labels" : null
+    },
+    "test" : {
+        "data" : null,
+        "labels" : null,
+        "annot_labels" : null
+    },
+    "out_classes" : 6,
+    "modality" : "timeseries",
+    "noise_type" : null,
+    "noise_rate" : 0.0,
+    "input_size" : 256,
+    "in_channels" : 2
+}

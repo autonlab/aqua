@@ -21,8 +21,8 @@ class AqModel:
                        architecture,
                        method, 
                        dataset,
-                       device='cpu'):
-        print("Model has been initialized")
+                       device='cpu',
+                       optimizer=None):
         # if modality == 'image':
         #     self.model = ImageNet(architecture,
         #                          epochs=1,
@@ -37,20 +37,21 @@ class AqModel:
         #     raise RuntimeError(f"Incorrect modality: {modality}")
         self.model = AqNet(model, 
                            output_dim=data_configs[dataset]['out_classes'],
-                           epochs=model_configs[architecture]['epochs'],
-                           batch_size=model_configs[architecture]['batch_size'],
-                           lr=model_configs[architecture]['batch_size'],
-                           lr_drops=model_configs[architecture]['batch_size'],
-                           device=device)
+                           epochs=model_configs['base'][architecture]['epochs'],
+                           batch_size=model_configs['base'][architecture]['batch_size'],
+                           lr=model_configs['base'][architecture]['batch_size'],
+                           lr_drops=model_configs['base'][architecture]['lr_drops'],
+                           device=device,
+                           optimizer=optimizer)
         self.method = method
 
         # Add a wrapper over base model
         if method == 'cleanlab':
             self.wrapper_model = CleanLab(self.model)
         elif method == 'aum':
-            self.wrapper_model = AUM(self.model)
+            self.wrapper_model = AUM(self.model, optimizer)
         elif method == "cincer":
-            self.wrapper_model = CINCER(self.model)
+            self.wrapper_model = CINCER(self.model, optimizer)
         elif method == "active_label_cleaning":
             self.wrapper_model = ActiveLabelCleaning(self.model)
         elif method == 'simifeat':
@@ -86,9 +87,8 @@ class AqModel:
 
 
 class TrainAqModel(AqModel):
-    def __init__(self, modality, architecture, method, dataset, device='cpu'):
-        super().__init__(modality, architecture, method, dataset, device)
-        print("TrainAqModel has been initialized")
+    def __init__(self, model, architecture, method, dataset, device='cpu', optimizer=None):
+        super().__init__(model, architecture, method, dataset, device, optimizer)
         # Train should only support fit/fit_predict ?
 
     def fit(self, data_aq):

@@ -3,6 +3,10 @@ import numpy as np
 import pandas as pd
 import torch
 import nltk
+from tqdm import tqdm
+from wfdb import rdrecord, rdann
+from sklearn import preprocessing
+from scipy.signal import find_peaks
 nltk.download('punkt')
 
 from transformers import AutoTokenizer, RobertaTokenizer
@@ -20,7 +24,7 @@ def __load_cifar10_train(data_path):
             labels.append(data_dict[b'labels'])
             data.append(data_dict[b'data'])
 
-    data, labels =  np.vstack(data), np.hstack(labels)
+    data, labels =  np.vstack(data).astype(np.float32), np.hstack(labels).astype(np.int64)
     data = data.reshape((data.shape[0], 3, 32, 32))
     return data, labels
 
@@ -34,7 +38,7 @@ def __load_cifar10_test(data_path):
     with open(data_path, 'rb') as fo:
         data_dict = pickle.load(fo, encoding='bytes')
     
-    data, labels = data_dict[b'data'], data_dict[b'labels']
+    data, labels = np.array(data_dict[b'data']).astype(np.float32), np.array(data_dict[b'labels']).astype(np.int64)
     data = data.reshape((data.shape[0], 3, 32, 32))
     return data, labels
 
@@ -91,6 +95,26 @@ def __preprocess(text_csv, tokenizer):
                       return_tensors='np',
                       is_split_into_words=False) for text in texts]
 
+def __load_wfdb_waveform(data_path, filelist, input_size, classes):
+    labels, data = [], []
+    for idx, filename in enumerate(filelist):
+        record = rdrecord(os.path.join(data_path, filename), smooth_frames=True)
+        signals0 = preprocessing.scale(np.nan_to_num(record.p_signal[:,0])).tolist()
+        signals1 = preprocessing.scale(np.nan_to_num(record.p_signal[:,1])).tolist()
+        peaks, _ = find_peaks(signals0, distance=150)
+
+        for peak in tqdm(peaks[1:-1], desc=f"File: {idx}/{len(filelist)}"):
+            start, end = peak-input_size//2, peak+input_size//2
+            ann = rdann(os.path.join(data_path, filename), extension='atr', sampfrom=start, sampto=end, return_label_elements=['symbol'])
+            annSymbol = ann.symbol
+
+            # Remove some N which breaks the balance of dataset
+            if len(annSymbol) == 1 and (annSymbol[0] in classes) and (annSymbol[0] != "N" or np.random.random()<0.15):
+                labels.append(classes.index(annSymbol[0]))
+                data.append([signals0[start:end], signals1[start:end]])
+
+    return np.array(data), np.array(labels)
+
 #######################  LOAD FUNCTIONS ########################
 def load_cifar10(cfg):
     # Load train data
@@ -132,3 +156,34 @@ def load_imdb(cfg):
     test_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)
 
     return Aqdata(train_tokens, train_labels, attention_mask=train_attention_masks), Aqdata(test_tokens, test_labels, attention_mask=test_attention_masks)
+
+def load_mitbih(cfg):
+    classes = ['N','V','/','A','F','~']
+    input_size = cfg["input_size"]
+    data_path = cfg['train']['data']
+    filelist = [f.replace('.hea','') for f in os.listdir(data_path) if f.endswith('.hea')]
+    testlist = ['101', '105','114','118', '124', '201', '210' , '217']
+    trainlist = [x for x in filelist if x not in testlist]
+
+    # Load training data
+    if os.path.exists(os.path.join(data_path, 'train_data.npy')):
+        train_data, train_labels = np.load(os.path.join(data_path, 'train_data.npy')),\
+                                   np.load(os.path.join(data_path, 'train_labels.npy'))
+    else:
+        train_data, train_labels = __load_wfdb_waveform(data_path, trainlist, input_size, classes)
+        np.save(os.path.join(data_path, 'train_data.npy'), train_data)
+        np.save(os.path.join(data_path, 'train_labels.npy'), train_labels)
+
+    # Load testing data
+    if os.path.exists(os.path.join(data_path, 'test_data.npy')):
+        test_data, test_labels = np.load(os.path.join(data_path, 'test_data.npy')),\
+                                 np.load(os.path.join(data_path, 'test_labels.npy'))
+    else:
+        test_data, test_labels = __load_wfdb_waveform(data_path, testlist, input_size, classes)
+        np.save(os.path.join(data_path, 'test_data.npy'), test_data)
+        np.save(os.path.join(data_path, 'test_labels.npy'), test_labels)
+    
+    # Convert dtypes
+    train_data, train_labels = train_data.astype(np.float32), train_labels.astype(np.int64)
+    test_data, test_labels = test_data.astype(np.float32), test_labels.astype(np.int64)
+    return Aqdata(train_data, train_labels), Aqdata(test_data, test_labels)
