@@ -1,4 +1,4 @@
-import os, torch, copy
+import os, shutil, copy, torch
 import numpy as np
 import pandas as pd
 
@@ -14,7 +14,7 @@ class AUM:
         self.orig_dim = self.model.output_dim
 
 
-    def _fit_get_aum(self, thr_inds):
+    def _fit_get_aum(self, thr_inds, iter='train'):
         self._aum_calculator = AUMCalculator(os.getcwd())
         train_metrics = self.model.get_training_metrics()
         for i in range(len(train_metrics['output'])):
@@ -22,11 +22,20 @@ class AUM:
                                         train_metrics['target'][i],
                                         train_metrics['sample_id'][i])
         self._aum_calculator.finalize()
-        aum_file = pd.read_csv(os.path.join(os.getcwd(), 'aum_values.csv'))
+        aum_results_filepath = os.path.join(os.getcwd(), 'results', f'aum_values_{iter}.csv')
+        shutil.move(os.path.join(os.getcwd(), 'aum_values.csv'), aum_results_filepath)
+        aum_file = pd.read_csv(aum_results_filepath)
+        aum_tensor = torch.tensor(aum_file["aum"].to_list())
+        aum_wtr = torch.lt(aum_tensor.view(-1, 1),
+                           aum_tensor[thr_inds].view(1, -1),
+                           ).float().mean(dim=-1).gt(0.01).float()
+
         thresh = np.percentile(aum_file.iloc[thr_inds]['aum'].values, self.alpha*100)
-        #d_thresh = aum_file.iloc[thr_inds]['aum'].values
         mask = np.array([True]*aum_file.shape[0])  # Selects train indices only, discards THR indices
         mask[thr_inds] = False
+
+        import pdb
+        pdb.set_trace()
 
         return np.array(aum_file.index)[mask][aum_file['aum'].values[mask] < thresh]
         
@@ -66,7 +75,7 @@ class AUM:
         labels_step_2[rand_inds[(N//c):]] = label_val
         temp_data_aq.labels = labels_step_2
         self.fit(temp_data_aq)
-        incorrect_labels_idx_thresh = self._fit_get_aum(rand_inds[(N//c):])
+        incorrect_labels_idx_thresh = self._fit_get_aum(rand_inds[(N//c):], 'test')
         total_incorrect_labels = np.union1d(incorrect_labels_idx, incorrect_labels_idx_thresh)
         del temp_data_aq
         #print(incorrect_labels_idx_thresh.shape)

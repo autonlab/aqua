@@ -1,18 +1,15 @@
 {
     "datasets" : [
-        "mitbih"
+        "cxr"
     ],
     "methods" : [
-        "cleanlab",
-        "cincer",
-        "aum",
-        "simifeat"
+        "cleanlab"
     ],
-    "device" : "cuda:0",
+    "device" : "cuda:1",
     "architecture" :{
         "image" : "mobilenet_v2",
         "text" : "roberta-base",
         "timeseries": "resnet1d",
-        "tabular": "random_forest"
+        "tabular": "mlp"
     }
 }

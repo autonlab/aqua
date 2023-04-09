@@ -9,4 +9,6 @@ yacs
 lightning-bolts
 torchmetrics
 transformers
+openpyxl
+pydicom
 nltk

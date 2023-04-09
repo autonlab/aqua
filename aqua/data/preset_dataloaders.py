@@ -1,18 +1,20 @@
-import os, pickle
+import os, pickle, json
 import numpy as np
 import pandas as pd
 import torch
+from torch.utils.data import DataLoader
 import nltk
 from tqdm import tqdm
 from wfdb import rdrecord, rdann
 from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
 from scipy.signal import find_peaks
 nltk.download('punkt')
 
 from transformers import AutoTokenizer, RobertaTokenizer
 
 from aqua.data.process_data import Aqdata, TestAqdata
-from aqua.configs import main_config
+from aqua.configs import main_config, model_configs
 
 # Loads CIFAR 10 train
 def __load_cifar10_train(data_path):
@@ -115,6 +117,19 @@ def __load_wfdb_waveform(data_path, filelist, input_size, classes):
 
     return np.array(data), np.array(labels)
 
+def __detect_and_process_categorical(df: pd.DataFrame, 
+                                     thresh=0.05):
+    categorical_df_columns = df.select_dtypes(include=[object]).columns
+    for column_name in categorical_df_columns:
+        column = df[column_name]
+        unique_count = column.unique().shape[0]
+        total_count = column.shape[0]
+        if unique_count / total_count < thresh:
+            le = preprocessing.LabelEncoder()
+            df[column_name] = le.fit_transform(column)
+    return df
+
+
 #######################  LOAD FUNCTIONS ########################
 def load_cifar10(cfg):
     # Load train data
@@ -125,7 +140,7 @@ def load_cifar10(cfg):
     data_cifar_test, label_cifar_test = __load_cifar10_test(cfg['test']['data'])
     labels_annot_test = __load_cifar10H_softlabels(cfg['test']['annot_labels'], agreement_threshold=0.9)
 
-    return Aqdata(data_cifar, label_cifar, labels_annot), Aqdata(data_cifar_test, label_cifar_test, labels_annot_test)
+    return Aqdata(data_cifar, label_cifar, corrected_labels=labels_annot), Aqdata(data_cifar_test, label_cifar_test, corrected_labels=labels_annot_test)
     
 
 def load_imdb(cfg):
@@ -187,3 +202,170 @@ def load_mitbih(cfg):
     train_data, train_labels = train_data.astype(np.float32), train_labels.astype(np.int64)
     test_data, test_labels = test_data.astype(np.float32), test_labels.astype(np.int64)
     return Aqdata(train_data, train_labels), Aqdata(test_data, test_labels)
+
+
+def load_credit_fraud(cfg):
+    filename = os.path.join(cfg['train']['data'], 'creditcard.csv')
+    file_df = pd.read_csv(filename)
+    labels = file_df['Class'].values 
+    feat_df = file_df.drop(columns=['Time', 'Class'])
+    features = feat_df.values
+    model_configs['base'][main_config['architecture']['tabular']]['input_dim'] = features.shape[1]  # ALL TABULAR DATASETS MUST SET INPUT FEATURE DIM
+
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels,
+                                                                                test_size=0.15,
+                                                                                random_state=1,
+                                                                                shuffle=True,
+                                                                                stratify=labels)
+    
+    train_features, train_labels = train_features.astype(np.float32), train_labels.astype(np.int64)
+    test_features, test_labels = test_features.astype(np.float32), test_labels.astype(np.int64)
+    return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
+
+def load_adult(cfg):
+    train_data_path = os.path.join(cfg['train']['data'], 'adult.data')
+    test_data_path = os.path.join(cfg['test']['data'], 'adult.test')
+    columns = ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation',
+               'relationship', 'race', 'sex', 'capital-gain', 'capital-loss',
+               'hours-per-week', 'native-country', 'target']
+    feat_csv = pd.read_csv(train_data_path, sep=',', names=columns)
+    test_feat_csv = pd.read_csv(test_data_path, sep=',', header=1, names=columns)
+    
+    feat_csv, test_feat_csv = __detect_and_process_categorical(feat_csv),\
+                              __detect_and_process_categorical(test_feat_csv)
+
+    train_features, train_labels = feat_csv.values[:,:-1], feat_csv['target'].values 
+    test_features, test_labels = test_feat_csv.values[:,:-1], test_feat_csv['target'].values
+
+    train_features, train_labels = train_features.astype(np.float32), train_labels.astype(np.int64)
+    test_features, test_labels = test_features.astype(np.float32), test_labels.astype(np.int64)
+
+    model_configs['base'][main_config['architecture']['tabular']]['input_dim'] = train_features.shape[1]
+
+    return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
+
+
+def load_dry_bean(cfg):
+    filename = os.path.join(cfg['train']['data'], 'Dry_Bean_Dataset.xlsx')
+    file_df = pd.read_excel(filename)
+    file_df = __detect_and_process_categorical(file_df)
+    labels = file_df['Class'].values 
+    feat_df = file_df.drop(columns=['Class'])
+    features = feat_df.values
+    model_configs['base'][main_config['architecture']['tabular']]['input_dim'] = features.shape[1]  # ALL TABULAR DATASETS MUST SET INPUT FEATURE DIM
+
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels,
+                                                                                test_size=0.15,
+                                                                                random_state=1,
+                                                                                shuffle=True,
+                                                                                stratify=labels)
+    
+    train_features, train_labels = train_features.astype(np.float32), train_labels.astype(np.int64)
+    test_features, test_labels = test_features.astype(np.float32), test_labels.astype(np.int64)
+    return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
+
+
+
+def load_car_evaluation(cfg):
+    filename = os.path.join(cfg['train']['data'], 'car.data')
+    columns = ['buying', 'maint', 'doors', 'persons', 'lug_boot', 'safety', 'target']
+    feat_csv = pd.read_csv(filename, sep=',', names=columns)
+    
+    feat_csv = __detect_and_process_categorical(feat_csv)
+
+    features, labels = feat_csv.values[:,:-1], feat_csv['target'].values 
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels,
+                                                                                test_size=0.15,
+                                                                                random_state=1,
+                                                                                shuffle=True,
+                                                                                stratify=labels)
+    
+    train_features, train_labels = train_features.astype(np.float32), train_labels.astype(np.int64)
+    test_features, test_labels = test_features.astype(np.float32), test_labels.astype(np.int64)
+    model_configs['base'][main_config['architecture']['tabular']]['input_dim'] = train_features.shape[1]
+
+    return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
+
+
+def load_mushrooms(cfg):
+    filename = os.path.join(cfg['train']['data'], 'agaricus-lepiota.data')
+    columns = ['target', 'cap-shape', 'cap-surface', 'cap-color', 'bruises', 'odor',
+               'gill-attachment', 'gill-spacing', 'gill-size', 'gill-color', 'stalk-shape',
+               'stalk-root', 'stalk-surface-above-ring', 'stalk-surface-below-ring',
+               'stalk-color-above-ring', 'stalk-color-below-ring', 'veil-type', 'veil-color',
+               'ring-number', 'ring-type', 'spore-print-color', 'population', 'habitat']
+    feat_csv = pd.read_csv(filename, sep=',', names=columns)
+    feat_csv = __detect_and_process_categorical(feat_csv)
+
+    features, labels = feat_csv.values[:,1:], feat_csv['target'].values 
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels,
+                                                                                test_size=0.15,
+                                                                                random_state=1,
+                                                                                shuffle=True,
+                                                                                stratify=labels)
+    
+    train_features, train_labels = train_features.astype(np.float32), train_labels.astype(np.int64)
+    test_features, test_labels = test_features.astype(np.float32), test_labels.astype(np.int64)
+    model_configs['base'][main_config['architecture']['tabular']]['input_dim'] = train_features.shape[1]
+
+    return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
+
+def load_compas(cfg):
+    filename = os.path.join(cfg['train']['data'], 'propublicaCompassRecividism_data_fairml.csv', 'propublica_data_for_fairml.csv')
+    feat_csv = pd.read_csv(filename)
+
+    features, labels = feat_csv.values[:,1:], feat_csv['Two_yr_Recidivism'].values 
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels,
+                                                                                test_size=0.15,
+                                                                                random_state=1,
+                                                                                shuffle=True,
+                                                                                stratify=labels)
+    
+    train_features, train_labels = train_features.astype(np.float32), train_labels.astype(np.int64)
+    test_features, test_labels = test_features.astype(np.float32), test_labels.astype(np.int64)
+    model_configs['base'][main_config['architecture']['tabular']]['input_dim'] = train_features.shape[1]
+
+    return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
+
+
+def load_cxr(cfg):
+    import pydicom as dicom
+    train_file_dir = cfg['train']['data']
+    test_file_dir = cfg['test']['data']
+    mappings = os.path.join(cfg['train']['labels'], 'pneumonia-challenge-dataset-mappings_2018.json')
+    with open(mappings) as f:
+        mapping_dict = json.load(f)
+
+    data, labels = [], []
+    for item in mapping_dict:
+        if os.path.exists(os.path.join(train_file_dir, item['subset_img_id']+'.dcm')):
+            filepath = os.path.join(train_file_dir, item['subset_img_id']+'.dcm')
+        elif os.path.exists(os.path.join(test_file_dir, item['subset_img_id']+'.dcm')):
+            filepath = os.path.join(test_file_dir, item['subset_img_id']+'.dcm')
+        else:
+            continue
+        #ds = np.repeat(dicom.dcmread(filepath).pixel_array[np.newaxis, :, :], 3, axis=0)
+        data.append(filepath)
+        orig_label = str(item['orig_labels']).lower()
+        if 'pneumonia' in orig_label:
+            labels.append("Pneumonia")
+        elif "infiltration" in orig_label or "consolidation" in orig_label:
+            labels.append("Consolidation/Infiltration")
+        elif "no finding" in orig_label:
+            labels.append("No Finding")
+        else:
+            labels.append("Other disease")
+
+    data = np.array(data)
+    le = preprocessing.LabelEncoder()
+    labels = le.fit_transform(labels).astype(np.int64)
+    train_inds, test_inds = train_test_split(np.arange(data.shape[0]),
+                                            test_size=0.15,
+                                            random_state=1,
+                                            shuffle=True,
+                                            stratify=labels)
+    train_data, train_labels = data[train_inds], labels[train_inds]
+    test_data, test_labels = data[test_inds], labels[test_inds]
+
+    return Aqdata(train_data, train_labels, lazy_load=True), Aqdata(test_data, test_labels, lazy_load=True)
+    

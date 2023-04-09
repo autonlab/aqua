@@ -3,14 +3,13 @@ import torch
 import numpy as np
 import pandas as pd
 
-from aqua.models import TrainAqModel, TestAqModel
+from aqua.models import TrainAqModel
+from aqua.utils import get_optimizer
 from aqua.configs import main_config, data_configs, model_configs
 import aqua.data.preset_dataloaders as presets
 from aqua.models.base_architectures import ConvNet, BertNet, TabularNet, TimeSeriesNet
 
 from sklearn.metrics import f1_score
-
-import pdb
 
 
 # TODO : (vedant) : remove this because it is redundant: config.json already has this
@@ -27,20 +26,6 @@ model_dict = {
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-
-
-def get_optimizer(model, architecture):
-    """
-    Initialize a new optimizer for a new model
-    """
-    if 'momentum' in model_configs['base'][architecture]:
-        optim = torch.optim.SGD(model.parameters(),
-                                      lr=model_configs['base'][architecture]['lr'],
-                                      momentum=model_configs['base'][architecture]['momentum'])
-    else:
-        optim = torch.optim.Adam(model.parameters(),
-                                       lr=model_configs['base'][architecture]['lr'])
-    return optim
 
 
 
@@ -126,6 +111,8 @@ def run_experiment_1(data_aq,
 
     return label_issues
 
+
+
 def generate_report(file=None):
     print("Generating report... \n\n", file=file)
 
@@ -135,14 +122,14 @@ def generate_report(file=None):
         modality = data_configs[dataset]['modality']
         architecture = main_config['architecture'][modality]
 
-        print(f"Modality: {modality},      Base Model's Architecture: {architecture}\n", file=file)
+        print(f"Modality: {modality},      Base Model's Architecture: {architecture},         Dataset: {dataset}\n", file=file)
         data_results_dict = {}
 
         # TODO : ensure every data loading module returns a test dataset. Q : how to deal with datasets that dont have a test dataset
         data_aq, data_aq_test = getattr(presets, f'load_{dataset}')(data_configs[dataset])
 
         for method in main_config['methods']:
-            logging.info(f"\n\nRunning {method} on dataset {dataset} with a base architecture")
+            logging.info(f"\n\nRunning {method} on dataset {dataset} with a base architecture {architecture}")
             label_issues = run_experiment_1(data_aq, 
                                             data_aq_test, 
                                             architecture,

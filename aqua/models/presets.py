@@ -1,13 +1,13 @@
 import torch, sys
 import numpy as np
+from tqdm import tqdm
 from sklearn.base import BaseEstimator
 
 from aqua.data import Aqdata, TestAqdata
 from torch.utils.data import DataLoader
-from aqua.utils import clear_memory
+from aqua.utils import clear_memory, load_batch_datapoints
 
 from transformers import AutoModel
-
 
 
 class AqNet(BaseEstimator):
@@ -38,6 +38,7 @@ class AqNet(BaseEstimator):
         self.device = device
         self.lr_drops = lr_drops
         self.output_dim = output_dim
+        self.data_loaded_dynamically = False  # Keeps track if data was loaded dynamically during `fit` : required for `predict_proba`
 
         # Push model to device
         self.model = model.to(device)
@@ -107,6 +108,7 @@ class AqNet(BaseEstimator):
         self.train_metrics['sample_id'].append(sample_ids.tolist())
 
         loss = criterion(preds, target)
+        loss_val = loss.item()
         loss.backward()
         self.optimizer.step()
         
@@ -115,6 +117,8 @@ class AqNet(BaseEstimator):
         del target
         del loss 
         del data_kwargs
+
+        return loss_val
 
     def fit(self, *args, 
             lr_tune=False,
@@ -127,15 +131,18 @@ class AqNet(BaseEstimator):
             data_aq = args[0]
         else:
             data_aq = Aqdata(args[0], args[1], **data_kwargs)
-        trainloader = DataLoader(data_aq,
-                                 batch_size=self.batch_size,
-                                 shuffle=True,
-                                 num_workers=4)
+
+        self.data_loaded_dynamically = data_aq.lazy_load
+        loader = DataLoader(data_aq,
+                            batch_size=self.batch_size,
+                            shuffle=True,
+                            num_workers=4)
         criterion = torch.nn.CrossEntropyLoss()
         scheduler = None
 
         if lr_tune:
             milestones = [int(lr_drop * self.epochs) for lr_drop in (self.lr_drops or [])]
+            print(milestones)
             scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer,
                                                             milestones=milestones,
                                                             gamma=0.1)
@@ -143,15 +150,23 @@ class AqNet(BaseEstimator):
         for epoch in range(1, self.epochs+1):
             self.model.train()
 
-            #print("Running epoch: ", epoch)
+            trainloader = tqdm(loader)
+            trainloader.set_description(f"Epoch: {epoch}/{self.epochs}")
+            avg_loss, loss_count = 0, 0
             for batch_idx, (data, target, idx, _, data_kwargs) in enumerate(trainloader):
-                self.__train_step(data, target, idx,
-                                data_kwargs,
-                                criterion)
+                loss = self.__train_step(data, target, idx,
+                                            data_kwargs,
+                                            criterion)
+                
+                avg_loss += loss
+                loss_count += 1
+                res = {'loss': f"{loss:.3f} ({(avg_loss/loss_count):.3f})"}
+                trainloader.set_postfix(**res)
 
             if scheduler:
                 scheduler.step()
-                if early_stop and (scheduler.get_last_lr()[-1] < self.lr):
+                if early_stop and (scheduler.get_last_lr()[-1] > self.lr):
+                    print("Model has been stopped from training")
                     break
         del scheduler
         del criterion
@@ -164,7 +179,7 @@ class AqNet(BaseEstimator):
                                     num_workers=4)
             preds = []
             self.model.eval()
-            for batch_idx, (data, _, _) in enumerate(testloader):
+            for batch_idx, (data, _, _) in tqdm(enumerate(testloader), desc='Predicting probs'):
                 data = data.to(self.device)
                 preds.append(self.model(data).detach().cpu())
                 del data
@@ -176,7 +191,7 @@ class AqNet(BaseEstimator):
                                     num_workers=4)
             preds = []
             self.model.eval()
-            for batch_idx, (data, _, _, _, _) in enumerate(testloader):
+            for batch_idx, (data, _, _, _, _) in tqdm(enumerate(testloader), desc='Predicting probs'):
                 data = data.to(self.device)
                 preds.append(self.model(data).detach().cpu())
                 del data
@@ -185,16 +200,21 @@ class AqNet(BaseEstimator):
         else:
             self.model.eval()
             data_aq = args[0]
-            data = torch.from_numpy(data_aq)
             preds = []
             if data_aq.shape[0] > 1:
-                for i in range(0, data.shape[0], self.batch_size): 
-                    x = data[i:i+self.batch_size].float().to(self.device)
+                for i in tqdm(range(0, data_aq.shape[0], self.batch_size), desc='Predicting probs'): 
+                    x = data_aq[i:i+self.batch_size]
+                    if self.data_loaded_dynamically:
+                        x = load_batch_datapoints(x)
+                    x = torch.from_numpy(x).to(self.device)
                     preds.append(self.model(x).detach().cpu().numpy())
                     del x
                 preds = torch.nn.Softmax(dim=1)(torch.from_numpy(np.concatenate(preds))).numpy()
             else:
+                if self.data_loaded_dynamically:
+                    data_aq = load_batch_datapoints(data_aq)
                 preds = torch.nn.Softmax(dim=1)(self.model(torch.from_numpy(data_aq).float().to(self.device))).detach().cpu().numpy()
+            print("Printing pred shape",preds.shape)
             return preds
 
     def predict(self, *args,

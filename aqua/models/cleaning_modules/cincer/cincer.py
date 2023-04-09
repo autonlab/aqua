@@ -51,8 +51,11 @@ class CINCER:
             radius = max_dist * nfisher_radius
 
 
-        pr, rc, f1, ece = self._prf(labels[kn], self.model.predict_proba(data[kn]))
-
+        #pr, rc, f1, ece = self._prf(labels[kn], self.model.predict_proba(data[kn]))
+        pr = 0
+        rc = 0
+        f1 = 0
+        ece = 0
         # Negotiate
 
         trace = pd.DataFrame()

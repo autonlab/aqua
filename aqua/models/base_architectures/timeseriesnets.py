@@ -125,6 +125,8 @@ class TimeSeriesNet(Module):
         if model_type == 'resnet1d':
             return ResNet1D(input_shape=((self.in_channels, 0)),
                             **kwargs), Linear(kwargs['n_feature_maps']*2, self.output_dim)
+        else:
+            raise NotImplementedError(f"Given model type: {model_type} is not supported. Currently supported methods are: {'resnet1d'}")
         
     def forward(self, x, return_feats=False, **kwargs):
         feats = self.model(x)
