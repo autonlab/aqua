@@ -4,17 +4,19 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 import nltk
+from sktime.datasets import load_from_tsfile_to_dataframe
 from tqdm import tqdm
 from wfdb import rdrecord, rdann
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from scipy.signal import find_peaks
+from datasets import load_dataset
 nltk.download('punkt')
 
 from transformers import AutoTokenizer, RobertaTokenizer
 
 from aqua.data.process_data import Aqdata, TestAqdata
-from aqua.configs import main_config, model_configs
+from aqua.configs import main_config, model_configs, data_configs
 
 # Loads CIFAR 10 train
 def __load_cifar10_train(data_path):
@@ -61,10 +63,6 @@ def __load_cifar10N_softlabels(label_path):
     return labels['aggre_label']
 
 
-def __load_cxr_train(data_path):
-    filedir = '/home/extra_scratch/vsanil/aqua/datasets/cxr'
-
-
 def __load_imdb(data_path):
     data_dict = {'text':[], 'target':[]}
 
@@ -86,16 +84,15 @@ def __load_imdb(data_path):
 
     return pd.DataFrame.from_dict(data_dict)
 
-def __preprocess(text_csv, tokenizer):
-    max_len = max([len(text) for text in text_csv.text])
+def __preprocess(text_csv, tokenizer, type='train'):
+    #max_len = max([len(text) for text in text_csv.text])
     #texts = [nltk.word_tokenize(text, language='english') for text in text_csv.text]
-    texts = [text for text in text_csv.text]
     return [tokenizer(text, 
                       padding='max_length', 
                       max_length=514, 
                       truncation=True, 
                       return_tensors='np',
-                      is_split_into_words=False) for text in texts]
+                      is_split_into_words=False) for text in tqdm(text_csv.text, desc=f'Tokenizing {type} data')]
 
 def __load_wfdb_waveform(data_path, filelist, input_size, classes):
     labels, data = [], []
@@ -153,7 +150,7 @@ def load_imdb(cfg):
     else:
         train_csv = pd.read_csv(csv_path)
 
-    train_csv = pd.concat([train_csv[train_csv.target == 0].iloc[:10], train_csv[train_csv.target == 1].iloc[:10]])
+    #train_csv = pd.concat([train_csv[train_csv.target == 0].iloc[:10], train_csv[train_csv.target == 1].iloc[:10]])
     feat_texts, train_labels = __preprocess(train_csv.dropna(), tokenizer=tokenizer), train_csv.dropna().target.values
     train_tokens = np.concatenate([f['input_ids'] for f in feat_texts], axis=0)
     train_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)
@@ -165,10 +162,13 @@ def load_imdb(cfg):
         test_csv.to_csv(csv_path, index=False)
     else:
         test_csv = pd.read_csv(csv_path)
-    test_csv = pd.concat([test_csv[test_csv.target == 0].iloc[:10], test_csv[test_csv.target == 1].iloc[:10]])
-    feat_texts, test_labels = __preprocess(test_csv.dropna(), tokenizer=tokenizer), test_csv.dropna().target.values
+    #test_csv = pd.concat([test_csv[test_csv.target == 0].iloc[:10], test_csv[test_csv.target == 1].iloc[:10]])
+    feat_texts, test_labels = __preprocess(test_csv.dropna(), tokenizer=tokenizer, type='test'), test_csv.dropna().target.values
     test_tokens = np.concatenate([f['input_ids'] for f in feat_texts], axis=0)
     test_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)
+
+    train_tokens, train_attention_masks, train_labels = train_tokens.astype(np.int64), train_attention_masks.astype(np.int64), train_labels.astype(np.int64)
+    test_tokens, test_attention_masks, test_labels = test_tokens.astype(np.int64), test_attention_masks.astype(np.int64), test_labels.astype(np.int64)
 
     return Aqdata(train_tokens, train_labels, attention_mask=train_attention_masks), Aqdata(test_tokens, test_labels, attention_mask=test_attention_masks)
 
@@ -368,4 +368,128 @@ def load_cxr(cfg):
     test_data, test_labels = data[test_inds], labels[test_inds]
 
     return Aqdata(train_data, train_labels, lazy_load=True), Aqdata(test_data, test_labels, lazy_load=True)
+
+
+
+def load_duckduckgeese(cfg):
+    train_X, train_y = load_from_tsfile_to_dataframe(cfg['train']['data'])
+    test_X, test_y = load_from_tsfile_to_dataframe(cfg['test']['data'])
     
+    train_X = train_X.to_numpy()
+    test_X = test_X.to_numpy()
+
+    inp_len = train_X.shape[0]
+    #train_y = np.hstack([l]*train_X.shape[-1] for l in train_y)
+    #test_y = np.hstack([l]*test_X.shape[-1] for l in test_y)
+    train_X = np.stack([np.stack([channel.values for channel in batch], axis=0) for batch in train_X], axis=0).reshape((inp_len, -1))[:, np.newaxis, :].astype(np.float32)
+    test_X = np.stack([np.stack([channel.values for channel in batch], axis=0) for batch in test_X], axis=0).reshape((inp_len, -1))[:, np.newaxis, :].astype(np.float32)
+
+    model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_X.shape[-2]
+
+    le = preprocessing.LabelEncoder()
+    train_y = le.fit_transform(train_y).astype(np.int64)
+    test_y = le.fit_transform(test_y).astype(np.int64)
+
+    return Aqdata(train_X, train_y), Aqdata(test_X, test_y)
+
+
+def load_eigenworms(cfg):
+    train_X, train_y = load_from_tsfile_to_dataframe(cfg['train']['data'])
+    test_X, test_y = load_from_tsfile_to_dataframe(cfg['test']['data'])
+
+    train_feats, test_feats = [], []
+    for i in range(6):
+        train_feats.append([train_X.values[batch,i].values for batch in range(train_X.shape[0])])
+        test_feats.append([test_X.values[batch,i].values for batch in range(test_X.shape[0])])
+
+    train_X = np.array(train_feats).transpose(1,0,2).astype(np.float32)
+    test_X = np.array(test_feats).transpose(1,0,2).astype(np.float32)
+
+    model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_X.shape[-2]
+
+    le = preprocessing.LabelEncoder()
+    train_y = le.fit_transform(train_y).astype(np.int64)
+    test_y = le.fit_transform(test_y).astype(np.int64)
+
+    return Aqdata(train_X, train_y), Aqdata(test_X, test_y)
+
+
+
+def load_fruitflies(cfg):
+    train_X, train_y = load_from_tsfile_to_dataframe(cfg['train']['data'])
+    test_X, test_y = load_from_tsfile_to_dataframe(cfg['test']['data'])
+
+    print(train_X.shape, train_y.shape)
+    raise KeyboardInterrupt
+
+    train_feats, test_feats = [], []
+    for i in range(6):
+        train_feats.append([train_X.values[batch,i].values for batch in range(train_X.shape[0])])
+        test_feats.append([test_X.values[batch,i].values for batch in range(test_X.shape[0])])
+
+    train_X = np.array(train_feats).transpose(1,0,2).astype(np.float32)
+    test_X = np.array(test_feats).transpose(1,0,2).astype(np.float32)
+
+    model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_X.shape[-2]
+
+    le = preprocessing.LabelEncoder()
+    train_y = le.fit_transform(train_y).astype(np.int64)
+    test_y = le.fit_transform(test_y).astype(np.int64)
+
+    return Aqdata(train_X, train_y), Aqdata(test_X, test_y)
+
+
+def load_tweeteval(cfg):
+    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'], model_max_length=514)
+    data_load = load_dataset(path=os.path.join(cfg["train"]["data"], 'tweet_eval.py'), name=cfg['type'], cache_dir=cfg["train"]["data"]) # Downloads the dataset if it already doesnt exist
+    train_data, test_data = data_load['train'], data_load['test']
+    train_data, test_data = [batch for batch in train_data], [batch for batch in test_data]
+    train_df = pd.DataFrame(train_data)
+    test_df = pd.DataFrame(test_data)
+
+    cfg['out_classes'] = len(pd.unique(train_df.label))
+
+    # Tokenize train data
+    feat_texts, train_labels = __preprocess(train_df.dropna(), tokenizer=tokenizer), train_df.dropna().label.values
+    train_tokens = np.concatenate([f['input_ids'] for f in feat_texts], axis=0)
+    train_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)
+    
+    # Tokenize test data
+    feat_texts, test_labels = __preprocess(test_df.dropna(), tokenizer=tokenizer, type='test'), test_df.dropna().label.values
+    test_tokens = np.concatenate([f['input_ids'] for f in feat_texts], axis=0)
+    test_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)
+
+    train_tokens, train_attention_masks, train_labels = train_tokens.astype(np.int64), train_attention_masks.astype(np.int64), train_labels.astype(np.int64)
+    test_tokens, test_attention_masks, test_labels = test_tokens.astype(np.int64), test_attention_masks.astype(np.int64), test_labels.astype(np.int64)
+
+    return Aqdata(train_tokens, train_labels, attention_mask=train_attention_masks), Aqdata(test_tokens, test_labels, attention_mask=test_attention_masks)
+
+def load_reuters(cfg):
+    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'], name=cfg['type'], model_max_length=514)
+    data_load = load_dataset(path=os.path.join(cfg["train"]["data"], 'reuters21578.py'), name=cfg['type'], cache_dir=cfg["train"]["data"]) # Downloads the dataset if it already doesnt exist
+    train_data, test_data = data_load['train'], data_load['test']
+    train_data, test_data = [batch for batch in train_data], [batch for batch in test_data]
+    train_df = pd.DataFrame(train_data)
+    test_df = pd.DataFrame(test_data)
+
+    print(train_df)
+    print(test_df)
+
+    raise KeyboardInterrupt
+
+    cfg['out_classes'] = len(pd.unique(train_df.label))
+
+    # Tokenize train data
+    feat_texts, train_labels = __preprocess(train_df.dropna(), tokenizer=tokenizer), train_df.dropna().label.values
+    train_tokens = np.concatenate([f['input_ids'] for f in feat_texts], axis=0)
+    train_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)
+    
+    # Tokenize test data
+    feat_texts, test_labels = __preprocess(test_df.dropna(), tokenizer=tokenizer, type='test'), test_df.dropna().label.values
+    test_tokens = np.concatenate([f['input_ids'] for f in feat_texts], axis=0)
+    test_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)
+
+    train_tokens, train_attention_masks, train_labels = train_tokens.astype(np.int64), train_attention_masks.astype(np.int64), train_labels.astype(np.int64)
+    test_tokens, test_attention_masks, test_labels = test_tokens.astype(np.int64), test_attention_masks.astype(np.int64), test_labels.astype(np.int64)
+
+    return Aqdata(train_tokens, train_labels, attention_mask=train_attention_masks), Aqdata(test_tokens, test_labels, attention_mask=test_attention_masks)

@@ -131,6 +131,9 @@ class TimeSeriesNet(Module):
     def forward(self, x, return_feats=False, **kwargs):
         feats = self.model(x)
         x = self.linear(feats)
+
+        if x.shape[0] != feats.shape[0]:
+            x = x.unsqueeze(0)
         if not return_feats:
             return x
         else:

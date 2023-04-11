@@ -1,6 +1,6 @@
 {
     "train" : {
-        "data" : "/zfsauton/data/public/vsanil/aqua/datasets/mit-bih/",
+        "data" : "/zfsauton/data/public/vsanil/aqua/datasets/UCRArchive_2018/EigenWorms/EigenWorms_TRAIN.ts",
         "labels" : null,
         "annot_labels" : null
     },
@@ -10,11 +10,11 @@
         "annot_labels" : null
     },
     "test" : {
-        "data" : null,
+        "data" : "/zfsauton/data/public/vsanil/aqua/datasets/UCRArchive_2018/EigenWorms/EigenWorms_TEST.ts",
         "labels" : null,
         "annot_labels" : null
     },
-    "out_classes" : 6,
+    "out_classes" : 5,
     "modality" : "timeseries",
     "noise_type" : null,
     "noise_rate" : 0.0

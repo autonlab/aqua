@@ -125,7 +125,6 @@ def generate_report(file=None):
         print(f"Modality: {modality},      Base Model's Architecture: {architecture},         Dataset: {dataset}\n", file=file)
         data_results_dict = {}
 
-        # TODO : ensure every data loading module returns a test dataset. Q : how to deal with datasets that dont have a test dataset
         data_aq, data_aq_test = getattr(presets, f'load_{dataset}')(data_configs[dataset])
 
         for method in main_config['methods']:

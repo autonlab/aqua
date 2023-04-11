@@ -1,9 +1,9 @@
 {
     "datasets" : [
-        "cxr"
+        "reuters"
     ],
     "methods" : [
-        "cleanlab"
+        "aum"
     ],
     "device" : "cuda:1",
     "architecture" :{

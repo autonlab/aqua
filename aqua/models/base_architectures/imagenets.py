@@ -20,6 +20,8 @@ class ConvNet(torch.nn.Module):
     def forward(self, x, kwargs={}, return_feats=False):
         feats = self.model(x)
         x = self.linear(feats)
+        if x.shape[0] != feats.shape[0]:
+            x = x.unsqueeze(0)
         if not return_feats:
             return x
         else:

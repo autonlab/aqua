@@ -11,4 +11,5 @@ torchmetrics
 transformers
 openpyxl
 pydicom
+sktime
 nltk

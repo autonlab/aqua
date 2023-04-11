@@ -96,6 +96,7 @@ class AqNet(BaseEstimator):
     
     def __train_step(self, data, target, sample_ids, data_kwargs, 
                     criterion):
+        #print(data.shape[0], target.shape[0])
         data, target = data.to(self.device), target.to(self.device)
         data_kwargs = self.__move_data_kwargs(data_kwargs, self.device)
 

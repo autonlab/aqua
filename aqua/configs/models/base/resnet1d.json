@@ -1,6 +1,6 @@
 {
     "epochs": 5,
-    "batch_size": 64,
+    "batch_size": 2,
     "lr": 0.01,
     "lr_drops": [],
     "n_feature_maps": 64,

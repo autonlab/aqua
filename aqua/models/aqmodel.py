@@ -56,6 +56,8 @@ class AqModel:
             self.wrapper_model = ActiveLabelCleaning(self.model)
         elif method == 'simifeat':
             self.wrapper_model = SimiFeat(self.model)
+        elif method == 'hoc':
+            self.wrapper_model = HOC(self.model)
         elif method == 'noisy':
             self.wrapper_model = self.model
 

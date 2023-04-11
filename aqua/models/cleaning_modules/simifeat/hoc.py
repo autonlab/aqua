@@ -491,3 +491,8 @@ def get_score(knn_labels_cnt, label, k, method='cores', prior=None):  # method =
         raise NameError('Undefined method')
 
     return score
+
+
+class HOC:
+    def __init__(self, model):
+        self.model = model
