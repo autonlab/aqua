@@ -1,4 +1,4 @@
-import os, json, copy, logging
+import os, json, copy, logging, sys
 import torch 
 import numpy as np
 import pandas as pd
@@ -10,6 +10,8 @@ import aqua.data.preset_dataloaders as presets
 from aqua.models.base_architectures import ConvNet, BertNet, TabularNet, TimeSeriesNet
 
 from sklearn.metrics import f1_score
+
+from pprint import pformat
 
 
 # TODO : (vedant) : remove this because it is redundant: config.json already has this
@@ -113,7 +115,7 @@ def run_experiment_1(data_aq,
 
 
 
-def generate_report(file=None):
+def generate_report(timestring, file=None):
     print("Generating report... \n\n", file=file)
 
     print("Experiment 1: \n", file=file)
@@ -124,11 +126,17 @@ def generate_report(file=None):
 
         print(f"Modality: {modality},      Base Model's Architecture: {architecture},         Dataset: {dataset}\n", file=file)
         data_results_dict = {}
-
         data_aq, data_aq_test = getattr(presets, f'load_{dataset}')(data_configs[dataset])
 
+        logging.info(f"Running on dataset: {dataset}")
+        dataset_config = pformat(data_configs[dataset])
+        logging.info(f"Dataset config: \n{dataset_config} \n\n\n")
         for method in main_config['methods']:
-            logging.info(f"\n\nRunning {method} on dataset {dataset} with a base architecture {architecture}")
+            logging.info(f"Running {method} on dataset {dataset} with a base architecture {architecture}")
+            curr_model_config = pformat(model_configs['base'][architecture])
+            curr_cleaning_config = pformat(model_configs['cleaning'][method])
+            logging.info(f"Config for base architecture {architecture}: \n{curr_model_config}\n")
+            logging.info(f"Config for cleaning method {method}: \n{curr_cleaning_config}\n")
             label_issues = run_experiment_1(data_aq, 
                                             data_aq_test, 
                                             architecture,
@@ -143,5 +151,5 @@ def generate_report(file=None):
         # Check if human annotated labels are available
         
         data_results_df = pd.DataFrame.from_dict(data_results_dict)
-        data_results_df.to_csv(f'results/{dataset}_label_issues.csv')
+        data_results_df.to_csv(f'results_{timestring}/{dataset}_label_issues.csv')
 

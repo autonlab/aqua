@@ -3,7 +3,7 @@
         "mitbih"
     ],
     "methods" : [
-        "cleanlab"
+        "cincer"
     ],
     "device" : "cuda:1",
     "architecture" :{

@@ -131,3 +131,6 @@ dmypy.json
 # Ignore all ymls
 *.yaml
 *.csv
+
+# Misc
+scripts/result*

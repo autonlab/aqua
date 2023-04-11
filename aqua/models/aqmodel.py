@@ -23,18 +23,6 @@ class AqModel:
                        dataset,
                        device='cpu',
                        optimizer=None):
-        # if modality == 'image':
-        #     self.model = ImageNet(architecture,
-        #                          epochs=1,
-        #                          output_dim=data_configs[dataset]['out_classes'],
-        #                          device=device)
-        # elif modality == 'text':
-        #     self.model = TextNet(architecture,
-        #                          epochs=1,
-        #                          output_dim=data_configs[dataset]['out_classes'],
-        #                          device=device)
-        # else:
-        #     raise RuntimeError(f"Incorrect modality: {modality}")
         self.model = AqNet(model, 
                            output_dim=data_configs[dataset]['out_classes'],
                            epochs=model_configs['base'][architecture]['epochs'],
@@ -89,7 +77,12 @@ class AqModel:
 
 
 class TrainAqModel(AqModel):
-    def __init__(self, model, architecture, method, dataset, device='cpu', optimizer=None):
+    def __init__(self, model, 
+                    architecture, 
+                    method, 
+                    dataset, 
+                    device='cpu', 
+                    optimizer=None):
         super().__init__(model, architecture, method, dataset, device, optimizer)
         # Train should only support fit/fit_predict ?
 

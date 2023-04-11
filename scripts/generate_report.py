@@ -1,8 +1,10 @@
-import sys, os, warnings, torch, numpy as np, random
+import sys, os, warnings, torch, numpy as np, random, logging
 sys.path.append('../')
 warnings.filterwarnings("ignore")
 
 from aqua.utils import seed_everything
+
+import datetime
 
 seed = 42
 random.seed(seed)
@@ -18,8 +20,18 @@ os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
 from aqua.report import generate_report
 
-if not os.path.exists('results'):
-    os.mkdir('results')
+timestring = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+os.mkdir(f'results_{timestring}')
 
-with open('results/report.txt', 'w') as f:
-    generate_report(f)
+# Logging
+logging.basicConfig(
+    format='%(message)s',
+    handlers=[
+        #logging.StreamHandler(sys),
+        logging.FileHandler(os.path.join(f'results_{timestring}', 'run_info.log'))
+    ],
+    level=logging.INFO
+)
+
+with open(f'results_{timestring}/report.txt', 'w') as f:
+    generate_report(timestring, f)
