@@ -36,34 +36,38 @@ class SyntheticNoise(ABC):
         """
         pass
     
-    def make_labels_one_hot(self, y:np.ndarray):
+    @staticmethod
+    def make_labels_one_hot(y:np.ndarray):
         encoder = OneHotEncoder(sparse=False, sparse_output=False) # Maybe change
         return encoder.fit_transform(y)
     
-    def check_process_inputs(self, X:np.ndarray, y:np.ndarray):
+    @staticmethod
+    def check_process_inputs(X:np.ndarray, y:np.ndarray):
         if len(y.shape) == 1: 
             y = y.reshape((-1, 1))
         else:
             raise AttributeError('Labels must be of shape (-1,) or (-1,1)') # This wouldn't work for multi-annotator settings
         return y
-
+    
+    @staticmethod
     def estimate_noise_rate(self, y:np.ndarray, noisy_y:np.ndarray):
         """Estimates the rate of added noise
         """
         # Check inputs
-        y = self.check_process_inputs(y)
-        noisy_y = self.check_process_inputs(noisy_y)
+        # y = self.check_process_inputs(y)
+        # noisy_y = self.check_process_inputs(noisy_y)
         assert y.shape == noisy_y.shape, "y and noisy_y shape mismatch"
 
         return np.mean(y != noisy_y)*100
-
+    
+    @staticmethod
     def estimate_noise_transition_matrix(self, y:np.ndarray, noisy_y:np.ndarray):
         """Estimates the noise transition matrix based on
         added noise and existing labels
         """
         # Check inputs
-        y = self.check_process_inputs(y)
-        noisy_y = self.check_process_inputs(noisy_y)
+        # y = self.check_process_inputs(y)
+        # noisy_y = self.check_process_inputs(noisy_y)
         assert y.shape == noisy_y.shape, "y and noisy_y shape mismatch"
         
         n_classes = self.infer_n_classes(y)
