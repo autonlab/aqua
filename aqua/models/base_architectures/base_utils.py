@@ -14,5 +14,7 @@ def getBertModel(modelname):
     model =  AutoModel.from_pretrained(modelname)
     if modelname == 'roberta-base':
         return model, 768
+    elif modelname == 'xlnet-base-cased':
+        return model, 768
     else:
         return model, None

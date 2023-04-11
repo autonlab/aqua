@@ -199,6 +199,7 @@ def load_mitbih(cfg):
         np.save(os.path.join(data_path, 'test_labels.npy'), test_labels)
     
     # Convert dtypes
+    model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_data.shape[-1]
     train_data, train_labels = train_data.astype(np.float32), train_labels.astype(np.int64)
     test_data, test_labels = test_data.astype(np.float32), test_labels.astype(np.int64)
     return Aqdata(train_data, train_labels), Aqdata(test_data, test_labels)
@@ -385,6 +386,7 @@ def load_duckduckgeese(cfg):
     test_X = np.stack([np.stack([channel.values for channel in batch], axis=0) for batch in test_X], axis=0).reshape((inp_len, -1))[:, np.newaxis, :].astype(np.float32)
 
     model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_X.shape[-2]
+    model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_X.shape[-1]
 
     le = preprocessing.LabelEncoder()
     train_y = le.fit_transform(train_y).astype(np.int64)
@@ -406,6 +408,7 @@ def load_eigenworms(cfg):
     test_X = np.array(test_feats).transpose(1,0,2).astype(np.float32)
 
     model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_X.shape[-2]
+    model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_X.shape[-1]
 
     le = preprocessing.LabelEncoder()
     train_y = le.fit_transform(train_y).astype(np.int64)
@@ -413,30 +416,6 @@ def load_eigenworms(cfg):
 
     return Aqdata(train_X, train_y), Aqdata(test_X, test_y)
 
-
-
-def load_fruitflies(cfg):
-    train_X, train_y = load_from_tsfile_to_dataframe(cfg['train']['data'])
-    test_X, test_y = load_from_tsfile_to_dataframe(cfg['test']['data'])
-
-    print(train_X.shape, train_y.shape)
-    raise KeyboardInterrupt
-
-    train_feats, test_feats = [], []
-    for i in range(6):
-        train_feats.append([train_X.values[batch,i].values for batch in range(train_X.shape[0])])
-        test_feats.append([test_X.values[batch,i].values for batch in range(test_X.shape[0])])
-
-    train_X = np.array(train_feats).transpose(1,0,2).astype(np.float32)
-    test_X = np.array(test_feats).transpose(1,0,2).astype(np.float32)
-
-    model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_X.shape[-2]
-
-    le = preprocessing.LabelEncoder()
-    train_y = le.fit_transform(train_y).astype(np.int64)
-    test_y = le.fit_transform(test_y).astype(np.int64)
-
-    return Aqdata(train_X, train_y), Aqdata(test_X, test_y)
 
 
 def load_tweeteval(cfg):
@@ -465,31 +444,11 @@ def load_tweeteval(cfg):
     return Aqdata(train_tokens, train_labels, attention_mask=train_attention_masks), Aqdata(test_tokens, test_labels, attention_mask=test_attention_masks)
 
 def load_reuters(cfg):
-    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'], name=cfg['type'], model_max_length=514)
+    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'], model_max_length=514)
     data_load = load_dataset(path=os.path.join(cfg["train"]["data"], 'reuters21578.py'), name=cfg['type'], cache_dir=cfg["train"]["data"]) # Downloads the dataset if it already doesnt exist
     train_data, test_data = data_load['train'], data_load['test']
     train_data, test_data = [batch for batch in train_data], [batch for batch in test_data]
     train_df = pd.DataFrame(train_data)
     test_df = pd.DataFrame(test_data)
 
-    print(train_df)
-    print(test_df)
-
-    raise KeyboardInterrupt
-
     cfg['out_classes'] = len(pd.unique(train_df.label))
-
-    # Tokenize train data
-    feat_texts, train_labels = __preprocess(train_df.dropna(), tokenizer=tokenizer), train_df.dropna().label.values
-    train_tokens = np.concatenate([f['input_ids'] for f in feat_texts], axis=0)
-    train_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)
-    
-    # Tokenize test data
-    feat_texts, test_labels = __preprocess(test_df.dropna(), tokenizer=tokenizer, type='test'), test_df.dropna().label.values
-    test_tokens = np.concatenate([f['input_ids'] for f in feat_texts], axis=0)
-    test_attention_masks = np.concatenate([f['attention_mask'] for f in feat_texts], axis=0)
-
-    train_tokens, train_attention_masks, train_labels = train_tokens.astype(np.int64), train_attention_masks.astype(np.int64), train_labels.astype(np.int64)
-    test_tokens, test_attention_masks, test_labels = test_tokens.astype(np.int64), test_attention_masks.astype(np.int64), test_labels.astype(np.int64)
-
-    return Aqdata(train_tokens, train_labels, attention_mask=train_attention_masks), Aqdata(test_tokens, test_labels, attention_mask=test_attention_masks)

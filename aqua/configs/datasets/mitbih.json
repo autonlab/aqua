@@ -17,5 +17,6 @@
     "out_classes" : 6,
     "modality" : "timeseries",
     "noise_type" : null,
-    "noise_rate" : 0.0
+    "noise_rate" : 0.0,
+    "input_size" : 256
 }

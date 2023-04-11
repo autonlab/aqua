@@ -1,0 +1,11 @@
+{
+    "epochs": 5,
+    "batch_size": 64,
+    "lr": 0.01,
+    "lr_drops": [],
+    "input_length": null,
+    "units": [256,128,64],
+    "dropout": 0.4,
+    "filters": [null, 32, 64, 64],
+    "kernel_sizes": [8, 5, 3]
+}

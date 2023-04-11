@@ -1,15 +1,15 @@
 {
     "datasets" : [
-        "reuters"
+        "mitbih"
     ],
     "methods" : [
-        "aum"
+        "cleanlab"
     ],
     "device" : "cuda:1",
     "architecture" :{
         "image" : "mobilenet_v2",
-        "text" : "roberta-base",
-        "timeseries": "resnet1d",
+        "text" : "xlnet-base-cased",
+        "timeseries": "fcn",
         "tabular": "mlp"
     }
 }
