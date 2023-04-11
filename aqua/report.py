@@ -151,5 +151,5 @@ def generate_report(timestring, file=None):
         # Check if human annotated labels are available
         
         data_results_df = pd.DataFrame.from_dict(data_results_dict)
-        data_results_df.to_csv(f'results_{timestring}/{dataset}_label_issues.csv')
+        data_results_df.to_csv(f'results/results_{timestring}/{dataset}_label_issues.csv')
 

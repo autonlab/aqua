@@ -18,9 +18,9 @@ class AUM:
         self._aum_calculator = AUMCalculator(os.getcwd())
         train_metrics = self.model.get_training_metrics()
         for i in range(len(train_metrics['output'])):
-            self._aum_calculator.update(train_metrics['output'][i],
-                                        train_metrics['target'][i],
-                                        train_metrics['sample_id'][i])
+            self._aum_calculator.update(logits=train_metrics['output'][i],
+                                        targets=train_metrics['target'][i],
+                                        sample_ids=train_metrics['sample_id'][i])
         self._aum_calculator.finalize()
         aum_results_filepath = os.path.join(os.getcwd(), 'results', f'aum_values_{iter}.csv')
         shutil.move(os.path.join(os.getcwd(), 'aum_values.csv'), aum_results_filepath)
@@ -34,8 +34,8 @@ class AUM:
         mask = np.array([True]*aum_file.shape[0])  # Selects train indices only, discards THR indices
         mask[thr_inds] = False
 
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
         return np.array(aum_file.index)[mask][aum_file['aum'].values[mask] < thresh]
         

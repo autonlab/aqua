@@ -21,17 +21,17 @@ os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 from aqua.report import generate_report
 
 timestring = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-os.mkdir(f'results_{timestring}')
+os.makedirs(f'results/results_{timestring}')
 
 # Logging
 logging.basicConfig(
     format='%(message)s',
     handlers=[
         #logging.StreamHandler(sys),
-        logging.FileHandler(os.path.join(f'results_{timestring}', 'run_info.log'))
+        logging.FileHandler(os.path.join(f'results/results_{timestring}', 'run_info.log'))
     ],
     level=logging.INFO
 )
 
-with open(f'results_{timestring}/report.txt', 'w') as f:
+with open(f'results/results_{timestring}/report.txt', 'w') as f:
     generate_report(timestring, f)

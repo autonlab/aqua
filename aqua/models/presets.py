@@ -1,4 +1,4 @@
-import torch, sys
+import torch, sys, logging
 import numpy as np
 from tqdm import tqdm
 from sklearn.base import BaseEstimator
@@ -6,8 +6,7 @@ from sklearn.base import BaseEstimator
 from aqua.data import Aqdata, TestAqdata
 from torch.utils.data import DataLoader
 from aqua.utils import clear_memory, load_batch_datapoints
-
-from transformers import AutoModel
+import warnings
 
 
 class AqNet(BaseEstimator):
@@ -28,7 +27,7 @@ class AqNet(BaseEstimator):
 
         if not torch.cuda.is_available() and 'cuda' in device:
             device = 'cpu'
-            print("Cuda not supported in a CPU only machine, defaulting to CPU device")
+            warnings.warn("Cuda not supported in a CPU only machine, defaulting to CPU device", RuntimeWarning)
 
         self.device = torch.device(device)
 
@@ -104,7 +103,7 @@ class AqNet(BaseEstimator):
         preds = self.model(data, data_kwargs)
 
         # Save training metrics
-        self.train_metrics['output'].append(preds.cpu().detach())
+        self.train_metrics['output'].append(preds.cpu().detach().half().float())
         self.train_metrics['target'].append(target.cpu().detach())
         self.train_metrics['sample_id'].append(sample_ids.tolist())
 
@@ -143,7 +142,6 @@ class AqNet(BaseEstimator):
 
         if lr_tune:
             milestones = [int(lr_drop * self.epochs) for lr_drop in (self.lr_drops or [])]
-            print(milestones)
             scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer,
                                                             milestones=milestones,
                                                             gamma=0.1)
@@ -163,12 +161,17 @@ class AqNet(BaseEstimator):
                 loss_count += 1
                 res = {'loss': f"{loss:.3f} ({(avg_loss/loss_count):.3f})"}
                 trainloader.set_postfix(**res)
+                
+                if batch_idx % 10 == 0:
+                    logging.info(f"Epoch: {epoch}, Batch: {batch_idx}, Avg Loss: {res['loss']}")
 
             if scheduler:
                 scheduler.step()
                 if early_stop and (scheduler.get_last_lr()[-1] > self.lr):
-                    print("Model has been stopped from training")
+                    logging.info("Model has been early stopped!")
                     break
+
+            logging.info("\n\n")
         del scheduler
         del criterion
     
@@ -215,7 +218,7 @@ class AqNet(BaseEstimator):
                 if self.data_loaded_dynamically:
                     data_aq = load_batch_datapoints(data_aq)
                 preds = torch.nn.Softmax(dim=1)(self.model(torch.from_numpy(data_aq).float().to(self.device))).detach().cpu().numpy()
-            print("Printing pred shape",preds.shape)
+            logging.debug("Pred shape after predict_proba", preds.shape)
             return preds
 
     def predict(self, *args,
