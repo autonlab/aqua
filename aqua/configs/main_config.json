@@ -1,14 +1,14 @@
 {
     "datasets" : [
-        "cifar10"
+        "imdb"
     ],
     "methods" : [
-        "aum"
+        "cincer"
     ],
     "device" : "cuda:1",
     "architecture" :{
         "image" : "resnet34",
-        "text" : "xlnet-base-cased",
+        "text" : "roberta-base",
         "timeseries": "fcn",
         "tabular": "mlp"
     }

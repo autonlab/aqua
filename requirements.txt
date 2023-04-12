@@ -1,11 +1,13 @@
 imagenet-x
 cleanlab
 aum
+datasets
+wfdb
 torch==1.13.1
 scikit-image==0.19.3
 pydicom==2.3.1
 pytorch-lightning==1.5.5
-yacsyacs==0.1.8
+yacs==0.1.8
 lightning-bolts==0.4.0
 torchmetrics==0.11.3
 transformers==4.26.1
