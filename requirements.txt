@@ -1,8 +1,8 @@
 imagenet-x
 cleanlab
 aum
-datasets
-wfdb
+datasets==2.11.0
+wfdb==4.1.0
 torch==1.13.1
 scikit-image==0.19.3
 pydicom==2.3.1
