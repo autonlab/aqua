@@ -1,6 +1,6 @@
 {
-    "epochs": 1,
-    "batch_size": 4,
+    "epochs": 150,
+    "batch_size": 64,
     "lr": 0.01,
     "lr_drops": [
         0.5

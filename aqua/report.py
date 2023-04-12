@@ -8,16 +8,12 @@ from aqua.utils import get_optimizer
 from aqua.configs import main_config, data_configs, model_configs
 import aqua.data.preset_dataloaders as presets
 from aqua.models.base_architectures import ConvNet, BertNet, TabularNet, TimeSeriesNet
+from aqua.data.process_data import Aqdata
 
 from sklearn.metrics import f1_score
 
 from pprint import pformat
 
-
-# TODO : (vedant) : remove this because it is redundant: config.json already has this
-# data_dict = {
-#     'cifar10' : load_cifar(cfg['data'])
-# }
 
 model_dict = {
     'image': ConvNet,
@@ -31,13 +27,13 @@ logger.setLevel(logging.DEBUG)
 
 
 
-def run_experiment_1(data_aq, 
-                     data_aq_test, 
-                     architecture,
-                     modality,
-                     dataset, 
-                     method,
-                     device='cuda:0',
+def run_experiment_1(data_aq: Aqdata, 
+                     data_aq_test: Aqdata, 
+                     architecture: str,
+                     modality: str,
+                     dataset: str, 
+                     method: str,
+                     device: str='cuda:0',
                      file=None):
     # Refer to doc for an exact defintion of experiment 1
 
@@ -83,12 +79,12 @@ def run_experiment_1(data_aq,
     
     del cleaning_optim
     del cleaning_base_model
-    logger.debug("Label issues detected")
+    logger.debug("Label issues detected, number of label issues found: ", np.sum(label_issues))
 
 
     # Clean the data 
     data_aq_clean = copy.deepcopy(data_aq)
-    data_aq_clean.clean_data(label_issues)
+    data_aq_clean.clean_data(label_issues) 
     logger.debug("Data cleaned using detected label issues")
 
     # Train a new model on cleaned data
