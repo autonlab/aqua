@@ -1,5 +1,5 @@
 {
-    "epochs": 20,
+    "epochs": 5,
     "batch_size": 32,
     "lr":2e-5,
     "lr_drops":[]

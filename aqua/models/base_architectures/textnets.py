@@ -11,6 +11,7 @@ class BertNet(torch.nn.Module):
 
     def forward(self, x, kwargs={}, return_feats=False):
         attention_mask = kwargs['attention_mask'] if 'attention_mask' in kwargs else None
+        x = x.int()
         feats = self.model(input_ids=x,
                            attention_mask=attention_mask)[0][:,0]
         x = self.fc1(feats)
@@ -23,4 +24,4 @@ class BertNet(torch.nn.Module):
         if not return_feats:
             return x
         else:
-            return x, return_feats
+            return x, feats
