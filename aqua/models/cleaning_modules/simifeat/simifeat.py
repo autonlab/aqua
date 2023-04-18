@@ -64,7 +64,7 @@ class SimiFeat:
             for i_batch, (feature, label, index, _, data_kwargs) in enumerate(trainloader):
                 feature, label = feature.to(self.model.device).float(), label.to(self.model.device)
                 with torch.no_grad():    
-                    _, extracted_feat = self.model.model(feature, **data_kwargs, return_feats=True)
+                    _, extracted_feat = self.model.model(feature, return_feats=True)
                 for i in range(extracted_feat.shape[0]):
                     record[label[i]].append({'feature':extracted_feat[i].detach().cpu(), 'index':index[i]})
 
