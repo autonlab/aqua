@@ -88,9 +88,9 @@ def __preprocess(text_csv, tokenizer, type='train'):
     #max_len = max([len(text) for text in text_csv.text])
     #texts = [nltk.word_tokenize(text, language='english') for text in text_csv.text]
     return [tokenizer(text, 
-                      padding='max_length', 
-                      max_length=514, 
-                      truncation=True, 
+                      add_special_tokens=True,
+                      max_length=512, 
+                      pad_to_max_length=True, 
                       return_tensors='np',
                       is_split_into_words=False) for text in tqdm(text_csv.text, desc=f'Tokenizing {type} data')]
 
@@ -141,7 +141,7 @@ def load_cifar10(cfg):
     
 
 def load_imdb(cfg):
-    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'], model_max_length=514)
+    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'])
     # Load train data
     csv_path = os.path.join(cfg['train']['data'], 'train_csv.csv')
     if not os.path.exists(csv_path):

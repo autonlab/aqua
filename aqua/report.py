@@ -109,8 +109,6 @@ def run_experiment_1(data_aq: Aqdata,
 
     return label_issues
 
-
-
 def generate_report(timestring, file=None):
     print("Generating report... \n\n", file=file)
 
