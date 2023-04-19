@@ -1,5 +1,5 @@
 imagenet-x
-cleanlab
+cleanlab==2.3.1
 aum
 torch==1.13.1
 scikit-image==0.19.3

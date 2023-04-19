@@ -1,15 +1,24 @@
 {
     "datasets" : [
-        "cifar10"
+        "compas",
+        "dry_bean",
+        "mushrooms",
+        "adult",
+        "car_evaluation",
+        "credit_fraud"
     ],
     "methods" : [
-        "aum"
+        "aum",
+        "cleanlab",
+        "cincer"
     ],
-    "device" : "cuda:1",
+    "device" : "cuda:2",
     "architecture" :{
         "image" : "resnet34",
         "text" : "xlnet-base-cased",
         "timeseries": "fcn",
         "tabular": "mlp"
-    }
+    },
+    "random_seed": 42,
+    "results_dir": "/home/scratch/mgoswami/"
 }
