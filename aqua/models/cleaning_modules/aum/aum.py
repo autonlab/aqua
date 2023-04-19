@@ -1,6 +1,7 @@
 import os, shutil, copy, torch
 import numpy as np
 import pandas as pd
+from aqua.configs import main_config
 
 # AUM imports
 from aum import AUMCalculator
@@ -15,15 +16,16 @@ class AUM:
 
 
     def _fit_get_aum(self, thr_inds, iter='train'):
-        self._aum_calculator = AUMCalculator(os.getcwd())
+        # self._aum_calculator = AUMCalculator(os.getcwd())
+        self._aum_calculator = AUMCalculator(os.path.join(main_config['results_dir'], 'results'))
         train_metrics = self.model.get_training_metrics()
         for i in range(len(train_metrics['output'])):
             self._aum_calculator.update(logits=train_metrics['output'][i],
                                         targets=train_metrics['target'][i],
                                         sample_ids=train_metrics['sample_id'][i])
         self._aum_calculator.finalize()
-        aum_results_filepath = os.path.join(os.getcwd(), 'results', f'aum_values_{iter}.csv')
-        shutil.move(os.path.join(os.getcwd(), 'aum_values.csv'), aum_results_filepath)
+        aum_results_filepath = os.path.join(main_config['results_dir'], f'results/aum_values_{iter}.csv')
+        shutil.move(os.path.join(main_config['results_dir'], 'results/aum_values.csv'), aum_results_filepath)
         aum_file = pd.read_csv(aum_results_filepath)
         aum_tensor = torch.tensor(aum_file["aum"].to_list())
         aum_wtr = torch.lt(aum_tensor.view(-1, 1),

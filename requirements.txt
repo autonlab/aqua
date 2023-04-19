@@ -1,5 +1,5 @@
 imagenet-x
-cleanlab
+cleanlab==2.3.1
 aum
 datasets==2.11.0
 wfdb==4.1.0
