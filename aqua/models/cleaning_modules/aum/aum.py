@@ -58,7 +58,7 @@ class AUM:
         label_val = np.unique(labels).max()+1
         N, c = labels.shape[0], np.unique(labels).shape[0]+1
         
-        rand_inds = np.random.randint(0, N, size=2*(N//c))
+        rand_inds = np.random.shuffle(np.arange(N))
 
         # Pass 1
         temp_data_aq = copy.deepcopy(data_aq)
