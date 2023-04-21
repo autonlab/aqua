@@ -1,11 +1,6 @@
 {
     "datasets" : [
-        "compas",
-        "dry_bean",
-        "mushrooms",
-        "adult",
-        "car_evaluation",
-        "credit_fraud"
+        "mitbih"
     ],
     "methods" : [
         "aum",
@@ -16,7 +11,7 @@
     "architecture" :{
         "image" : "resnet34",
         "text" : "roberta-base",
-        "timeseries": "fcn",
+        "timeseries": "fcn", 
         "tabular": "mlp"
     },
     "random_seed": 42,

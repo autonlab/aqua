@@ -105,7 +105,7 @@ def run_experiment_1(data_aq: Aqdata,
     del clean_base_model
     logger.debug("Base model trained on cleaned data")
 
-    print(f"Cleaning method: {method}, Uncleaned Model's F1 Score:", round(f1_score(noisy_test_labels, data_aq_test.labels, average='weighted'), 6), "Cleaned Model's F1 Score:", round(f1_score(clean_test_labels, data_aq_test.labels, average='weighted'), 6), file=file)
+    print(f"Cleaning method: {method}, Uncleaned Model's F1 Score: {round(f1_score(noisy_test_labels, data_aq_test.labels, average='weighted'), 6)}", f"Cleaned Model's F1 Score: {round(f1_score(clean_test_labels, data_aq_test.labels, average='weighted'), 6)}\n", file=file)
 
     return label_issues
 
