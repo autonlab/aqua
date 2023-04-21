@@ -1,5 +1,6 @@
-import torch
+import torch, copy
 import numpy as np
+import pandas as pd
 
 from .sim_utils import noniterate_detection
 from . import global_var as global_var
@@ -11,36 +12,7 @@ class SimiFeat:
     def __init__(self, model):
         self.model = model
 
-    def find_label_issues(self, data_aq, **kwargs):
-        noise_type = kwargs['noise_type']
-        k = kwargs['k']
-        noise_rate = kwargs['noise_rate']
-        seed = kwargs['seed']
-        G = kwargs['G']
-        cnt = kwargs['cnt']
-        max_iter = kwargs['max_iter']
-        local = kwargs['local']
-        loss = kwargs['loss']
-        num_epoch = kwargs['num_epoch']
-        min_similarity = kwargs['min_similarity']
-        Tii_offset = kwargs['Tii_offset']
-        method = kwargs['method']
-
-        self.config = global_var.SimiArgs(noise_rate=noise_rate,
-                                        noise_type=noise_type,
-                                        Tii_offset=Tii_offset,
-                                        k=k,
-                                        G=G,
-                                        seed=seed,
-                                        cnt=cnt,
-                                        max_iter=max_iter,
-                                        local=local,
-                                        loss=loss,
-                                        num_epoch=num_epoch,
-                                        min_similarity=min_similarity,
-                                        method=method)
-        self.config.device = self.model.device
-
+    def _noniterate_detect(self, data_aq, desc=''):
         labels = data_aq.labels
         num_classes = np.unique(labels).shape[0]
         N = labels.shape[0]
@@ -80,7 +52,7 @@ class SimiFeat:
                 self.config.method = 'mv'
                 sel_noisy, sel_clean, sel_idx = noniterate_detection(self.config, record, data_aq, 
                                                                     sel_noisy=sel_noisy_rec.copy())
-                sel_clean_rec[epoch][np.array(sel_idx)] += 0.5
+                sel_clean_rec[epoch][np.array(sel_clean)] += 0.5
 
                 self.config.method = 'both'
                 sel_times_rec[np.array(sel_idx)] += 0.5
@@ -100,5 +72,70 @@ class SimiFeat:
             sel_noisy_summary = np.round(1.0 - aa).astype(bool)
             sel_noisy_summary[nan_flag] = False
 
-            #print(np.sum(sel_noisy_summary))
             return sel_noisy_summary
+
+    def find_label_issues(self, data_aq, **kwargs):
+        noise_type = kwargs['noise_type']
+        k = kwargs['k']
+        noise_rate = kwargs['noise_rate']
+        seed = kwargs['seed']
+        G = kwargs['G']
+        cnt = kwargs['cnt']
+        max_iter = kwargs['max_iter']
+        local = kwargs['local']
+        loss = kwargs['loss']
+        num_epoch = kwargs['num_epoch']
+        min_similarity = kwargs['min_similarity']
+        Tii_offset = kwargs['Tii_offset']
+        method = kwargs['method']
+
+        self.config = global_var.SimiArgs(noise_rate=noise_rate,
+                                        noise_type=noise_type,
+                                        Tii_offset=Tii_offset,
+                                        k=k,
+                                        G=G,
+                                        seed=seed,
+                                        cnt=cnt,
+                                        max_iter=max_iter,
+                                        local=local,
+                                        loss=loss,
+                                        num_epoch=num_epoch,
+                                        min_similarity=min_similarity,
+                                        method=method)
+        self.config.device = self.model.device
+
+        N = data_aq.data.shape[0]
+        rand_inds = np.arange(N)
+        np.random.shuffle(rand_inds)
+
+        # Pass 1
+        noisy_inds, test_inds = rand_inds[:N//2], rand_inds[N//2:]
+        temp_data_aq = copy.deepcopy(data_aq)
+        temp_data_aq.set_inds(noisy_inds)
+        self.fit(temp_data_aq) # Train model on half the training data randomly chosen
+        del temp_data_aq
+
+        temp_data_aq = copy.deepcopy(data_aq)
+        temp_data_aq.set_inds(test_inds)
+        sel_inds_1 = self._noniterate_detect(temp_data_aq, desc='SimiFeat First Pass')
+    
+        # Pass 2
+        temp_data_aq = copy.deepcopy(data_aq)
+        temp_data_aq.set_inds(test_inds)
+        self.fit(temp_data_aq) # Train model on half the training data randomly chosen
+        del temp_data_aq
+
+        temp_data_aq = copy.deepcopy(data_aq)
+        temp_data_aq.set_inds(noisy_inds)
+        sel_inds_2 = self._noniterate_detect(temp_data_aq, desc='SimiFeat Second Pass')
+
+        mask = np.array([False]*N)
+        mask[test_inds[sel_inds_1].tolist() + noisy_inds[sel_inds_2].tolist()] = True
+
+        print(mask.sum())
+        raise KeyboardInterrupt
+        return mask
+
+    def fit(self, data_aq):
+        return self.model.fit(data_aq,
+                              lr_tune=True)

@@ -1,6 +1,6 @@
 import numpy as np
 import torch.nn.functional as F
-import time
+import time, logging
 #import resnet_image as res_image
 #import resnet as res_cifar
 #import resnet_cifar as res_cifar_new
@@ -104,7 +104,7 @@ def check_T_torch(KINDS, clean_label, noisy_label):
         if P_real[i]>0:
             T_real[i] /= P_real[i]
     P_real = np.array(P_real)/sum(P_real)
-    print(f'Check: P = {P_real},\n T = \n{np.round(T_real,3)}')
+    logging.debug(f'Check: P = {P_real},\n T = \n{np.round(T_real,3)}')
     return T_real, P_real
 
 
@@ -281,7 +281,7 @@ def check_T(KINDS, noisy_label, point_each_cluster):
         temp_sum = sum(temp_error_matrix[i])
         for j in range(KINDS):
             temp_error_matrix[i][j] = round(temp_error_matrix[i][j]/temp_sum, 3)
-    print(f'Check_Error_Rate = \n{np.array(temp_error_matrix)}')
+    logging.debug(f'Check_Error_Rate = \n{np.array(temp_error_matrix)}')
 
 
 
@@ -355,7 +355,7 @@ def set_device():
         _device = torch.device("cuda")
     else:
         _device = torch.device("cpu")
-    print(f'Current device is {_device}', flush=True)
+    logging.debug(f'Current device is {_device}', flush=True)
     return _device
 
 def set_model_pre(config):
