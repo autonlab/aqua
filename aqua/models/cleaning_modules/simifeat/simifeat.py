@@ -1,4 +1,4 @@
-import torch, copy
+import torch, copy, logging
 import numpy as np
 import pandas as pd
 
@@ -12,7 +12,7 @@ class SimiFeat:
     def __init__(self, model):
         self.model = model
 
-    def _noniterate_detect(self, data_aq, desc=''):
+    def _noniterate_detect(self, data_aq, desc='') -> np.ndarray:
         labels = data_aq.labels
         num_classes = np.unique(labels).shape[0]
         N = labels.shape[0]
@@ -104,6 +104,8 @@ class SimiFeat:
                                         method=method)
         self.config.device = self.model.device
 
+        logging.debug("Running SIMIFEAT...")
+
         N = data_aq.data.shape[0]
         rand_inds = np.arange(N)
         np.random.shuffle(rand_inds)
@@ -118,7 +120,8 @@ class SimiFeat:
         temp_data_aq = copy.deepcopy(data_aq)
         temp_data_aq.set_inds(test_inds)
         sel_inds_1 = self._noniterate_detect(temp_data_aq, desc='SimiFeat First Pass')
-    
+        logging.debug(f"First Pass num issues detected: {sel_inds_1.sum()}")
+
         # Pass 2
         temp_data_aq = copy.deepcopy(data_aq)
         temp_data_aq.set_inds(test_inds)
@@ -128,12 +131,13 @@ class SimiFeat:
         temp_data_aq = copy.deepcopy(data_aq)
         temp_data_aq.set_inds(noisy_inds)
         sel_inds_2 = self._noniterate_detect(temp_data_aq, desc='SimiFeat Second Pass')
+        logging.debug(f"Second Pass num issues detected: {sel_inds_2.sum()}")
 
         mask = np.array([False]*N)
         mask[test_inds[sel_inds_1].tolist() + noisy_inds[sel_inds_2].tolist()] = True
 
-        print(mask.sum())
-        raise KeyboardInterrupt
+        # print(mask.sum())
+        # raise KeyboardInterrupt
         return mask
 
     def fit(self, data_aq):
