@@ -55,12 +55,12 @@ def get_knn_acc_all_class(args, data_set, k=10, noise_prior=None, sel_noisy=None
 
     if args.method == 'mv':
         # test majority voting
-        print(f'Use MV')
+        logging.info(f'Use MV')
         label_pred = np.argmax(knn_labels_cnt, axis=1).reshape(-1)
         sel_noisy += (sel_idx[label_pred != noisy_label]).tolist()
     elif args.method == 'rank1':
-        print(f'Use rank1')
-        print(f'Tii offset is {args.Tii_offset}')
+        logging.info(f'Use rank1')
+        logging.info(f'Tii offset is {args.Tii_offset}')
         # fig=plt.figure(figsize=(15,4))
         for sel_class in range(KINDS):
             thre_noise_rate_per_class = 1 - min(args.Tii_offset * thre_noise_rate[sel_class][sel_class], 1.0)
@@ -96,7 +96,7 @@ def get_T_global_min_new(args, data_set, max_step=501, T0=None, p0=None, lr=0.1,
     KINDS = args.num_classes
     # NumTest = 50
     all_point_cnt = args.cnt
-    print(f'Use {all_point_cnt} in each round. Total rounds {NumTest}.')
+    logging.info(f'Use {all_point_cnt} in each round. Total rounds {NumTest}.')
 
     p_estimate = [[] for _ in range(3)]
     p_estimate[0] = torch.zeros(KINDS)
@@ -150,8 +150,8 @@ def noniterate_detection(config, record, train_dataset, sel_noisy=[]):
 
 
         T_given_noisy = T * p / noisy_prior
-        print("T given noisy:")
-        print(np.round(T_given_noisy, 2))
+        logging.info("T given noisy:")
+        logging.info(np.round(T_given_noisy, 2))
         # add randomness
         for i in range(T.shape[0]):
             T_given_noisy[i][i] += np.random.uniform(low=-0.05, high=0.05)
@@ -168,8 +168,8 @@ def noniterate_detection(config, record, train_dataset, sel_noisy=[]):
     recall_noisy = np.sum(train_dataset.noise_or_not[sel_noisy]) / np.sum(train_dataset.noise_or_not)
 
 
-    print(f'[noisy] precision: {precision_noisy}')
-    print(f'[noisy] recall: {recall_noisy}')
-    print(f'[noisy] F1-score: {2.0 * precision_noisy * recall_noisy / (precision_noisy + recall_noisy)}')
+    logging.debug(f'[noisy] precision: {precision_noisy}')
+    logging.debug(f'[noisy] recall: {recall_noisy}')
+    logging.debug(f'[noisy] F1-score: {2.0 * precision_noisy * recall_noisy / (precision_noisy + recall_noisy)}')
 
     return sel_noisy, sel_clean, data_set['index']

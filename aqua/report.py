@@ -109,7 +109,7 @@ def run_experiment_1(data_aq: Aqdata,
 
     return label_issues
 
-def generate_report(timestring, file=None):
+def generate_report(timestring=None, file=None):
     print("Generating report... \n\n", file=file)
 
     print("Experiment 1: \n", file=file)
@@ -118,7 +118,7 @@ def generate_report(timestring, file=None):
         modality = data_configs[dataset]['modality']
         architecture = main_config['architecture'][modality]
 
-        print(42*"=")
+        print(42*"=", file=file)
         print(f"Modality: {modality} | Base Model's Architecture: {architecture} | Dataset: {dataset}", file=file)
         data_results_dict = {}
         data_aq, data_aq_test = getattr(presets, f'load_{dataset}')(data_configs[dataset])
@@ -142,9 +142,13 @@ def generate_report(timestring, file=None):
                                             file=file)
             
             data_results_dict[method] = label_issues.tolist()
-        print(42*"=")
+        print(42*"=", file=file)
         # Check if human annotated labels are available
+
+        if data_aq.corrected_labels is not None:
+            data_results_dict['Human Annotated Labels'] = (data_aq.corrected_labels != data_aq.labels).tolist()
         
-        data_results_df = pd.DataFrame.from_dict(data_results_dict)
-        data_results_df.to_csv(os.path.join(main_config['results_dir'], f'results/results_{timestring}/{dataset}_label_issues.csv'))
+        if timestring is not None:
+            data_results_df = pd.DataFrame.from_dict(data_results_dict)
+            data_results_df.to_csv(os.path.join(main_config['results_dir'], f'results/results_{timestring}/{dataset}_label_issues.csv'))
 

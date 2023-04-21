@@ -1,10 +1,10 @@
 {
     "noise_type": "instance",
     "k": 10, 
-    "noise_rate": 0.4, 
+    "noise_rate": 0.0, 
     "seed": 1,
     "G": 10,
-    "cnt": 15000,
+    "cnt": 3000,
     "max_iter": 400,
     "local": false,
     "loss": "fw",

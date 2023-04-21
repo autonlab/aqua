@@ -3,17 +3,16 @@
         "mitbih"
     ],
     "methods" : [
-        "aum",
-        "cleanlab",
         "cincer"
     ],
     "device" : "cuda:2",
     "architecture" :{
-        "image" : "resnet34",
+        "image" : "mobilenet_v2",
         "text" : "roberta-base",
         "timeseries": "fcn", 
         "tabular": "mlp"
     },
     "random_seed": 42,
-    "results_dir": "/home/scratch/mgoswami/"
+    "results_dir": "/home/scratch/vsanil/",
+    "debug": true 
 }

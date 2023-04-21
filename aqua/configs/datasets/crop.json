@@ -1,0 +1,21 @@
+{
+    "train" : {
+        "data" : "/zfsauton/data/public/vsanil/aqua/datasets/UCRArchive_2018/Crop/Crop_TRAIN.tsv",
+        "labels" : null,
+        "annot_labels" : null
+    },
+    "val" : {
+        "data" : null,
+        "labels" : null,
+        "annot_labels" : null
+    },
+    "test" : {
+        "data" : "/zfsauton/data/public/vsanil/aqua/datasets/UCRArchive_2018/Crop/Crop_TEST.tsv",
+        "labels" : null,
+        "annot_labels" : null
+    },
+    "out_classes" : 24,
+    "modality" : "timeseries",
+    "noise_type" : null,
+    "noise_rate" : 0.0
+}

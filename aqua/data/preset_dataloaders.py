@@ -1,4 +1,4 @@
-import os, pickle, json
+import os, pickle, json, logging
 import numpy as np
 import pandas as pd
 import torch
@@ -132,7 +132,8 @@ def load_cifar10(cfg):
     # Load train data
     data_cifar, label_cifar = __load_cifar10_train(cfg['train']['data'])
     labels_annot = __load_cifar10N_softlabels(cfg['train']['annot_labels'])
-
+    
+    logging.info(f"Total number of human annotated label issues: {(labels_annot != label_cifar).sum()}")
     # Load test data
     data_cifar_test, label_cifar_test = __load_cifar10_test(cfg['test']['data'])
     labels_annot_test = __load_cifar10H_softlabels(cfg['test']['annot_labels'], agreement_threshold=0.9)
@@ -416,6 +417,52 @@ def load_eigenworms(cfg):
 
     return Aqdata(train_X, train_y), Aqdata(test_X, test_y)
 
+def load_crop(cfg):
+    train_df = pd.read_csv(cfg['train']['data'], sep='\t').values
+    test_df = pd.read_csv(cfg['test']['data'], sep='\t').values
+
+    train_features, train_labels = train_df[:, 1:], train_df[:,0]-1
+    test_features, test_labels = test_df[:, 1:], test_df[:,0]-1
+    
+    train_features, train_labels = train_features[:, np.newaxis, :].astype(np.float32), train_labels.astype(np.int64)
+    test_features, test_labels = test_features[:, np.newaxis, :].astype(np.float32), test_labels.astype(np.int64)
+    
+    model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
+    model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
+    
+    return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
+
+
+def load_insectwingbeat(cfg):
+    train_df = pd.read_csv(cfg['train']['data'], sep='\t').values
+    test_df = pd.read_csv(cfg['test']['data'], sep='\t').values
+
+    train_features, train_labels = train_df[:, 1:], train_df[:,0]-1
+    test_features, test_labels = test_df[:, 1:], test_df[:,0]-1
+    
+    train_features, train_labels = train_features[:, np.newaxis, :].astype(np.float32), train_labels.astype(np.int64)
+    test_features, test_labels = test_features[:, np.newaxis, :].astype(np.float32), test_labels.astype(np.int64)
+    
+    model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
+    model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
+    
+    return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
+
+
+def load_electricdevices(cfg):
+    train_df = pd.read_csv(cfg['train']['data'], sep='\t').values
+    test_df = pd.read_csv(cfg['test']['data'], sep='\t').values
+
+    train_features, train_labels = train_df[:, 1:], train_df[:,0]-1
+    test_features, test_labels = test_df[:, 1:], test_df[:,0]-1
+    
+    train_features, train_labels = train_features[:, np.newaxis, :].astype(np.float32), train_labels.astype(np.int64)
+    test_features, test_labels = test_features[:, np.newaxis, :].astype(np.float32), test_labels.astype(np.int64)
+    
+    model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
+    model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
+    
+    return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
 
 def load_tweeteval(cfg):

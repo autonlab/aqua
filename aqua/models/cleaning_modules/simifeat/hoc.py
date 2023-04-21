@@ -34,7 +34,7 @@ def get_T_P_global(config, sub_noisy_dataset_name, max_step=501, T0=None, p0=Non
     # NumTest = int(20)
     # TODO: make the above parameters configurable
 
-    print(f'Estimating global T. Sampling {all_point_cnt} examples each time')
+    logging.info(f'Estimating global T. Sampling {all_point_cnt} examples each time')
 
     KINDS = config.num_classes
     data_set = torch.load(f'{sub_noisy_dataset_name}', map_location=torch.device('cpu'))
@@ -49,7 +49,7 @@ def get_T_P_global(config, sub_noisy_dataset_name, max_step=501, T0=None, p0=Non
     p_estimate[2] = torch.zeros(KINDS, KINDS, KINDS)
     p_estimate_rec = torch.zeros(NumTest, 3)
     for idx in range(NumTest):
-        print(idx, flush=True)
+        #print(idx, flush=True)
 
         # global
         sample = np.random.choice(range(data_set['feature'].shape[0]), all_point_cnt, replace=False)
@@ -62,7 +62,7 @@ def get_T_P_global(config, sub_noisy_dataset_name, max_step=501, T0=None, p0=Non
             ss = torch.abs(p_estimate[i] / (idx + 1) - p_real[i])
             p_estimate_rec[idx, i] = torch.mean(torch.abs(p_estimate[i] / (idx + 1) - p_real[i])) * 100.0 / (
                 torch.mean(p_real[i]))  # Assess the gap between estimation value and real value
-        print(p_estimate_rec[idx], flush=True)
+        logging.info(p_estimate_rec[idx], flush=True)
 
     for j in range(3):
         p_estimate[j] = p_estimate[j] / NumTest
@@ -78,7 +78,7 @@ def get_T_P_global(config, sub_noisy_dataset_name, max_step=501, T0=None, p0=Non
     # print(f"loss = {loss_min}, \np = {P_calc}, \nT_est = \n{np.round(E_calc, 3)}")
     # print(f"sum p = {np.sum(P_calc)}, \nsum T_est = \n{np.sum(E_calc, 1)}")
     # print("\n---Error of the estimated T (sum|T_est - T|/N * 100)----", flush=True)
-    print(f"L11 Error (Global): {np.sum(np.abs(E_calc - np.array(T_real))) * 1.0 / KINDS * 100}")
+    logging.info(f"L11 Error (Global): {np.sum(np.abs(E_calc - np.array(T_real))) * 1.0 / KINDS * 100}")
     T_err = np.sum(np.abs(E_calc - np.array(T_real))) * 1.0 / KINDS * 100
     rec_global = [[] for _ in range(3)]
     rec_global[0], rec_global[1], rec_global[2] = loss_min, T_real, E_calc
@@ -491,8 +491,3 @@ def get_score(knn_labels_cnt, label, k, method='cores', prior=None):  # method =
         raise NameError('Undefined method')
 
     return score
-
-
-class HOC:
-    def __init__(self, model):
-        self.model = model
