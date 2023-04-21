@@ -1,5 +1,6 @@
 import torch, copy
 import numpy as np
+from tqdm import tqdm
 
 # CINCER imports
 import pandas as pd
@@ -8,6 +9,8 @@ from scipy.spatial.distance import pdist
 from sklearn.utils import check_random_state, Bunch
 from sklearn.metrics import precision_recall_fscore_support as prfs
 from .negsup.negotiation import get_suspiciousness, find_counterexample
+
+from aqua.data.process_data import Aqdata
 
 
 class CINCER:
@@ -37,7 +40,8 @@ class CINCER:
                     no_ce=True,
                     negotiator='random',
                     nfisher_radius = 0.1,
-                    return_suspiciousness=True):
+                    return_suspiciousness=True,
+                    desc='Pass 1'):
 
         if_config = {}
         rng = check_random_state(rng)
@@ -93,7 +97,7 @@ class CINCER:
 
         mistake_inds = []
         nlabels = np.unique(labels).shape[0]
-        for idx in range(inds.shape[0]):
+        for idx in tqdm(range(inds.shape[0]), desc=desc):
             #print(idx)
             i = inds[idx]
             kn = np.append(kn, [i])
@@ -152,7 +156,9 @@ class CINCER:
         return mistake_inds
         
 
-    def find_label_issues(self, data_aq, **kwargs):
+    def find_label_issues(self, 
+                          data_aq: Aqdata, 
+                          **kwargs):
         # Save initial states of models before training 
         orig_model = copy.deepcopy(self.model.model)
         orig_optim = type(self.optimizer)(orig_model.parameters(), lr=self.optimizer.defaults['lr'])
@@ -169,13 +175,16 @@ class CINCER:
 
         # Two splits of data to discover label issues
         N = data.shape[0]
-        rand_inds = np.random.randint(0, N, size=N)
+        rand_inds = np.arange(N)
+        np.random.shuffle(rand_inds)
         
         # Pass 1 
         noisy_inds, test_inds = rand_inds[:N//2], rand_inds[N//2:]
         temp_data_aq = copy.deepcopy(data_aq)
+        temp_data_aq.set_inds(noisy_inds)
         self.fit(temp_data_aq)
-        te_lbl_issue_inds = self._negotiate(temp_data_aq, 
+        del temp_data_aq
+        te_lbl_issue_inds = self._negotiate(copy.deepcopy(data_aq), 
                                             noisy_inds, test_inds,
                                             inspector=inspector,
                                             threshold=threshold,
@@ -183,13 +192,17 @@ class CINCER:
                                             no_ce=no_ce,
                                             negotiator=negotiator,
                                             nfisher_radius=nfisher_radius,
-                                            return_suspiciousness=return_suspiciousness)
+                                            return_suspiciousness=return_suspiciousness,
+                                            desc='CINCER First Pass')
         
         # Pass 2 
         temp_data_aq = copy.deepcopy(data_aq)
         self.model.reinit_model(orig_model, orig_optim)
+        temp_data_aq = copy.deepcopy(data_aq)
+        temp_data_aq.set_inds(test_inds)
         self.fit(temp_data_aq)
-        te_lbl_issue_inds += self._negotiate(temp_data_aq, 
+        del temp_data_aq
+        te_lbl_issue_inds += self._negotiate(copy.deepcopy(data_aq), 
                                             test_inds, noisy_inds,
                                             inspector=inspector,
                                             threshold=threshold,
@@ -197,8 +210,8 @@ class CINCER:
                                             no_ce=no_ce,
                                             negotiator=negotiator,
                                             nfisher_radius=nfisher_radius,
-                                            return_suspiciousness=return_suspiciousness)
-
+                                            return_suspiciousness=return_suspiciousness,
+                                            desc='CINCER Second Pass')
 
         mask = np.array([False]*data.shape[0])
         mask[te_lbl_issue_inds] = True
@@ -207,8 +220,7 @@ class CINCER:
 
     def fit(self, data_aq):
         return self.model.fit(data_aq,
-                              lr_tune=True,
-                              early_stop=True)
+                              lr_tune=True)
 
     def predict(self, data_aq):
         return self.model.predict(data_aq)

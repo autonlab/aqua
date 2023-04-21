@@ -1,6 +1,6 @@
 {
-    "inspector": "random",
-    "threshold": 0,
+    "inspector": "margin",
+    "threshold": 0.2,
     "rng": null,
     "no_ce": true,
     "negotiator": "random",
