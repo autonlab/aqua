@@ -9,6 +9,9 @@
     * MIT-BIH Arrhythmia Detection Dataset (name: `mitbih`)
     * DuckDuckGeese: Differentiate between sounds of ducks and geese (name: `duckduckgeese`) 
     * EigenWorms: Differentiate species of worms based on their motion (name: `eigenworms`)
+    * ElectricDevices: Track usage of electric devices (name: `electricdevices`)
+    * Crop: Differentiate between different crops based on plant characteristics (name: `crop`)
+    * InsectWingbeatSound: Differentiate between species of insects based on the sound of their wingbeats (name: `insectwingbeat`)
 * Vision
     * CIFAR-10 (name: `cifar10`)
     * Noisy CXR : Classify pneumonia based on chest x-rays (name: `cxr`)

@@ -218,7 +218,7 @@ class AqNet(BaseEstimator):
                 if self.data_loaded_dynamically:
                     data_aq = load_batch_datapoints(data_aq)
                 preds = torch.nn.Softmax(dim=1)(self.model(torch.from_numpy(data_aq).float().to(self.device))).detach().cpu().numpy()
-            logging.debug("Pred shape after predict_proba", preds.shape)
+            logging.debug(f"Pred shape after predict_proba {preds.shape}")
             return preds
 
     def predict(self, *args,
