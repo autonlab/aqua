@@ -20,7 +20,12 @@ class SyntheticNoise(ABC):
 
     @abstractmethod  # Decorator to define an abstract method
     def make_noise_transition_matrix(self):
-        """Make noise transition matrix to 
+        """Make noise transition matrix to inject noise
+
+        A noise transition matrix M is a K x K matrix for k-class
+        classification problems. M[i, j] denotes the probability
+        that the observed (noisy) label is i, when the ground 
+        truth (true) label is j.
         """
         pass
 
@@ -40,7 +45,7 @@ class SyntheticNoise(ABC):
         encoder = OneHotEncoder(sparse=False, sparse_output=False) # Maybe change
         return encoder.fit_transform(y)
     
-    def check_process_inputs(self, X:np.ndarray, y:np.ndarray):
+    def check_process_inputs(self, y:np.ndarray):
         if len(y.shape) == 1: 
             y = y.reshape((-1, 1))
         else:
@@ -55,7 +60,7 @@ class SyntheticNoise(ABC):
         noisy_y = self.check_process_inputs(noisy_y)
         assert y.shape == noisy_y.shape, "y and noisy_y shape mismatch"
 
-        return np.mean(y != noisy_y)*100
+        return np.mean(y != noisy_y)
 
     def estimate_noise_transition_matrix(self, y:np.ndarray, noisy_y:np.ndarray):
         """Estimates the noise transition matrix based on
