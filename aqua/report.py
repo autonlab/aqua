@@ -2,6 +2,7 @@ import os, json, copy, logging, sys
 import torch 
 import numpy as np
 import pandas as pd
+import traceback
 
 from aqua.models import TrainAqModel
 from aqua.utils import get_optimizer
@@ -24,8 +25,6 @@ model_dict = {
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-
-
 
 def run_experiment_1(data_aq: Aqdata, 
                      data_aq_test: Aqdata, 
@@ -61,7 +60,6 @@ def run_experiment_1(data_aq: Aqdata,
 
     del noisy_base_model
     del noisy_optim
-
 
     # Define the cleaning method that will detect label issues
     extra_dim = 1 if method == 'aum' else 0
@@ -132,16 +130,23 @@ def generate_report(timestring=None, file=None):
             curr_cleaning_config = pformat(model_configs['cleaning'][method])
             logging.info(f"Config for base architecture {architecture}: \n{curr_model_config}\n")
             logging.info(f"Config for cleaning method {method}: \n{curr_cleaning_config}\n")
-            label_issues = run_experiment_1(data_aq, 
-                                            data_aq_test, 
-                                            architecture,
-                                            modality, 
-                                            dataset, 
-                                            method,
-                                            device=main_config['device'],
-                                            file=file)
+
+            try:
+                label_issues = run_experiment_1(data_aq, 
+                                                data_aq_test, 
+                                                architecture,
+                                                modality, 
+                                                dataset, 
+                                                method,
+                                                device=main_config['device'],
+                                                file=file)
+                data_results_dict[method] = label_issues.tolist()
             
-            data_results_dict[method] = label_issues.tolist()
+            except:
+                logging.info(f"{method} on dataset {dataset} with a base architecture {architecture} failed to run. Stack trace:")
+                logging.info(traceback.print_exc())
+                continue
+            
         print(42*"=", file=file)
         # Check if human annotated labels are available
 

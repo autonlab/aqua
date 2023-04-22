@@ -1,18 +1,32 @@
 {
     "datasets" : [
-        "mitbih"
+        "adult",
+        "car_evaluation",
+        "compas",
+        "credit_fraud",
+        "crop",
+        "dry_bean",
+        "duckduckgeese",
+        "eigenworms",
+        "electricdevices",
+        "insectwingbeat",    
+        "mitbih",
+        "mushrooms"
     ],
     "methods" : [
-        "cincer"
+        "simifeat",
+        "cincer",
+        "cleanlab",
+        "aum"
     ],
-    "device" : "cuda:2",
+    "device" : "cuda:1",
     "architecture" :{
         "image" : "mobilenet_v2",
         "text" : "roberta-base",
-        "timeseries": "fcn", 
+        "timeseries": "resnet1d", 
         "tabular": "mlp"
     },
     "random_seed": 42,
-    "results_dir": "/home/scratch/vsanil/",
-    "debug": true 
+    "results_dir": "/home/scratch/mgoswami/",
+    "debug": false 
 }

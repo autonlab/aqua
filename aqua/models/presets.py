@@ -162,13 +162,13 @@ class AqNet(BaseEstimator):
                 res = {'loss': f"{loss:.3f} ({(avg_loss/loss_count):.3f})"}
                 trainloader.set_postfix(**res)
                 
-                if batch_idx % 10 == 0:
+                if batch_idx % 500 == 0:
                     logging.info(f"Epoch: {epoch}, Batch: {batch_idx}, Avg Loss: {res['loss']}")
 
             if scheduler:
                 scheduler.step()
                 if early_stop and (scheduler.get_last_lr()[-1] > self.lr):
-                    logging.info("Model has been early stopped!")
+                    logging.info("Model has early stopped!")
                     break
 
             logging.info("\n\n")
