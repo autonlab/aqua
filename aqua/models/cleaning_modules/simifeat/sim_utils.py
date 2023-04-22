@@ -167,15 +167,18 @@ def noniterate_detection(config, record, train_dataset, sel_noisy=[]):
     logging.debug(f"Sel_noisy shape: {sel_noisy.shape}")
     logging.debug(f"Sel_noisy type: {sel_noisy.dtype}")
 
+    # noisy_in_sel_noisy = np.sum(train_dataset.noise_or_not[sel_noisy]) / sel_noisy.shape[0]
+    # precision_noisy = noisy_in_sel_noisy
+    # recall_noisy = np.sum(train_dataset.noise_or_not[sel_noisy]) / np.sum(train_dataset.noise_or_not)
+
+
+    # logging.debug(f'[noisy] precision: {precision_noisy}')
+    # logging.debug(f'[noisy] recall: {recall_noisy}')
+    # logging.debug(f'[noisy] F1-score: {2.0 * precision_noisy * recall_noisy / (precision_noisy + recall_noisy)}')
+
     if sel_noisy.shape[0] == 0:
         sel_noisy = np.array(sel_noisy, dtype=int)
-    noisy_in_sel_noisy = np.sum(train_dataset.noise_or_not[sel_noisy]) / sel_noisy.shape[0]
-    precision_noisy = noisy_in_sel_noisy
-    recall_noisy = np.sum(train_dataset.noise_or_not[sel_noisy]) / np.sum(train_dataset.noise_or_not)
-
-
-    logging.debug(f'[noisy] precision: {precision_noisy}')
-    logging.debug(f'[noisy] recall: {recall_noisy}')
-    logging.debug(f'[noisy] F1-score: {2.0 * precision_noisy * recall_noisy / (precision_noisy + recall_noisy)}')
-
+    if sel_clean.shape[0] == 0:
+        sel_clean = np.array(sel_clean, dtype=int)
+        
     return sel_noisy, sel_clean, data_set['index']
