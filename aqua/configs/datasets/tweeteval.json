@@ -14,7 +14,7 @@
         "labels" : null,
         "annot_labels" : null
     },
-    "type": "emoji",
+    "type": "offensive",
     "out_classes" : 2,
     "modality" : "text",
     "noise_type" : null,
