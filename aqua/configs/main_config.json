@@ -1,17 +1,6 @@
 {
     "datasets" : [
-        "adult",
-        "car_evaluation",
-        "compas",
-        "credit_fraud",
-        "crop",
-        "dry_bean",
-        "duckduckgeese",
-        "eigenworms",
-        "electricdevices",
-        "insectwingbeat",    
-        "mitbih",
-        "mushrooms"
+        "mitbih"
     ],
     "methods" : [
         "simifeat",
@@ -23,7 +12,7 @@
     "architecture" :{
         "image" : "mobilenet_v2",
         "text" : "roberta-base",
-        "timeseries": "resnet1d", 
+        "timeseries": "fcn", 
         "tabular": "mlp"
     },
     "random_seed": 42,

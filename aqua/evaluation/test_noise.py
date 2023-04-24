@@ -40,6 +40,5 @@ def test_real(noise_rate=0.2):
 def main():
     test_synthetic(n=10000, k=5, f=64, noise_rate=0.2)
 
-
 if __name__ == '__main__':
     main()

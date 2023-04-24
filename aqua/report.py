@@ -142,9 +142,9 @@ def generate_report(timestring=None, file=None):
                                                 file=file)
                 data_results_dict[method] = label_issues.tolist()
             
-            except:
+            except Exception:
                 logging.info(f"{method} on dataset {dataset} with a base architecture {architecture} failed to run. Stack trace:")
-                logging.info(traceback.print_exc())
+                logging.exception("Exception")
                 continue
             
         print(42*"=", file=file)
