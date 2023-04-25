@@ -1,11 +1,20 @@
 import numpy as np
 from .noise_abc import SyntheticNoise
+from typing import Union, List
+import numpy.typing as npt 
 
-class UniformNoise(SyntheticNoise):
+class ClassDependentNoise(SyntheticNoise):
     def __init__(self, 
                  n_classes:int=2, 
-                 noise_rate:float=0.2):
+                 noise_rate:Union[float, List, npt.NDArray]=[0.1, 0.4]):
         super().__init__()
+        """
+        Notes: 
+        There are two ways to inject class dependent noise: 
+        (1) From the confusion matrix of learned models
+        (2) arbitrary structured noise transition matrix 
+        """
+
         self.n_classes = n_classes
         self.noise_transition_matrix = np.identity(n=self.n_classes)
         self.p = noise_rate

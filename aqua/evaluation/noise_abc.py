@@ -34,12 +34,6 @@ class SyntheticNoise(ABC):
         """Add noise to input data (X, y)
         """
         pass
-
-    @abstractmethod
-    def add_noise(self, X:np.ndarray, y:np.ndarray):
-        """Add noise to input data (X, y)
-        """
-        pass
     
     def make_labels_one_hot(self, y:np.ndarray):
         encoder = OneHotEncoder(sparse=False, sparse_output=False) # Maybe change

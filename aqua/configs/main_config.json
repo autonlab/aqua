@@ -1,6 +1,7 @@
 {
     "datasets" : [
-        "mitbih"
+        "mitbih",
+        "credit_fraud"
     ],
     "methods" : [
         "simifeat",
@@ -12,7 +13,7 @@
     "architecture" :{
         "image" : "mobilenet_v2",
         "text" : "roberta-base",
-        "timeseries": "fcn", 
+        "timeseries": "resnet1d", 
         "tabular": "mlp"
     },
     "random_seed": 42,
