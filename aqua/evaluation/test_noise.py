@@ -5,9 +5,24 @@ sys.path.append('../../')
 import numpy as np
 from aqua.evaluation.uniform_noise import UniformNoise
 from aqua.evaluation.dissenting_label_noise import DissentingLabelNoise
+from aqua.configs import data_configs
+from aqua.data.preset_dataloaders import load_cifar10
 
 
-def test_synthetic(n=10000, k=5, f=64, noise_rate=0.2, multi_annotator=False):
+def create_synthetic_data(n=10000, k=5, f=64):
+    """Generate synthetic data
+
+    n: Number of data point 
+    k: Number of classes
+    f: Number of features
+    """
+    X = np.random.random((n, f))
+    y = np.argmax(np.random.multinomial(n=1, size=n, pvals=k*[1/k]), axis=1)
+    annotator_y = np.random.randint(0, k, size=(k, n))
+    
+    return X, y, annotator_y
+
+def test_synthetic(noise_obj, n=10000, k=5, f=64):
     """Generate synthetic data and check noise injection
 
     n: Number of data point 
@@ -15,39 +30,63 @@ def test_synthetic(n=10000, k=5, f=64, noise_rate=0.2, multi_annotator=False):
     f: Number of features
     noise_rate: Noise rate for injection
     """
-    X = np.random.random((n, f))
-    y = np.argmax(np.random.multinomial(n=1, size=n, pvals=k*[1/k]), axis=1)
-    if multi_annotator:
-        annotator_y = np.random.randint(0, k, size=(k, n))
+    # Create synthetic data
+    X, y, annotator_y = create_synthetic_data(n, k, f)
 
     # Noise injection
-    if multi_annotator:
-        noise_obj = DissentingLabelNoise(n_classes=k, noise_rate=noise_rate)
+    if noise_obj.multi_annotator:
         noisy_X, noisy_y = noise_obj.add_noise(X=X, y=y, annotator_y=annotator_y)
     else:
-        noise_obj = UniformNoise(n_classes=k, noise_rate=noise_rate)
-        print('(Before Noise Injection) Noise transition matrix:\n', noise_obj.noise_transition_matrix)
-
         noisy_X, noisy_y = noise_obj.add_noise(X=X, y=y)
 
-    print(f'Test 1 (Features should not change) {np.allclose(X, noisy_X)}')
+    print("\n---- Synthetic ---")
+    print(f'Test 1 (Features should not change): {np.allclose(X, noisy_X)}')
     
     estimated_noise_rate = noise_obj.estimate_noise_rate(y=y, noisy_y=noisy_y)
     print(f'Estimated noise rate: {estimated_noise_rate}')
-    print(f'Test 2 (Added and estimate noise rate should be close) {np.abs(estimated_noise_rate - noise_rate) < 0.05}')
+    print(f'Test 2 (Added and estimate noise rate should be close): {np.abs(estimated_noise_rate - noise_obj.p) < 0.01}')
 
-    if not multi_annotator:
+    if not noise_obj.multi_annotator:
         empirical_noise_transition_matrix = noise_obj.estimate_noise_transition_matrix(y=y.astype(int), noisy_y=noisy_y)
-        print(f'Estimated noise transition matrix:\n {empirical_noise_transition_matrix}')
-        print(f'Test 3 (Added and estimated noise transition matrices should be close) {np.allclose(empirical_noise_transition_matrix , noise_obj.noise_transition_matrix, atol=0.05)}')
+        #print(f'Estimated noise transition matrix:\n {empirical_noise_transition_matrix}')
+        print(f'Test 3 (Added and estimated noise transition matrices should be close): {np.allclose(empirical_noise_transition_matrix , noise_obj.noise_transition_matrix, atol=0.05)}')
         
-def test_real(noise_rate=0.2):
-    # Load a dataset
-    pass
+def test_cifar10(noise_obj):
+    train_data, test_data = load_cifar10(cfg=data_configs['cifar10'])
+    n_classes = data_configs['cifar10']['out_classes']
+    X, y, annotator_y = train_data.data, train_data.labels, train_data.annotator_labels
 
+    # Noise injection
+    if noise_obj.multi_annotator:
+        noisy_X, noisy_y = noise_obj.add_noise(X=X, y=y, annotator_y=annotator_y)
+    else:
+        noisy_X, noisy_y = noise_obj.add_noise(X=X, y=y)
+    
+    print("\n---- CIFAR10 ---")
+    print(f'Test 1 (Features should not change): {np.allclose(X, noisy_X)}')
+    
+    estimated_noise_rate = noise_obj.estimate_noise_rate(y=y, noisy_y=noisy_y)
+    print(f'Estimated noise rate: {estimated_noise_rate}')
+    print(f'Test 2 (Added and estimate noise rate should be close): {np.abs(estimated_noise_rate - noise_obj.p) < 0.01}')
+
+    if not noise_obj.multi_annotator:
+        empirical_noise_transition_matrix = noise_obj.estimate_noise_transition_matrix(y=y.astype(int), noisy_y=noisy_y)
+        #print(f'Estimated noise transition matrix:\n {empirical_noise_transition_matrix}')
+        print(f'Test 3 (Added and estimated noise transition matrices should be close): {np.allclose(empirical_noise_transition_matrix , noise_obj.noise_transition_matrix, atol=0.05)}')
+        
 def main():
-    test_synthetic(n=10000, k=5, f=64, noise_rate=0.2, multi_annotator=False)
-    test_synthetic(n=10000, k=5, f=64, noise_rate=0.2, multi_annotator=True)
+
+    print("\n---- Testing Uniform Noise ---")
+    noise_args = {"n_classes":10, "noise_rate":0.2}
+    noise_obj = UniformNoise(**noise_args)
+    test_synthetic(noise_obj, n=10000, k=10, f=64)
+    test_cifar10(noise_obj)
+
+    print("\n---- Testing Dissenting Label Noise ---")
+    noise_args = {"n_classes":5, "noise_rate":0.2}
+    noise_obj = DissentingLabelNoise(**noise_args)
+    test_synthetic(noise_obj, n=10000, k=5, f=64)
+    test_cifar10(noise_obj)
 
 if __name__ == '__main__':
     main()
