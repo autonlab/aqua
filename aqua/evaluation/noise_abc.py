@@ -18,7 +18,12 @@ class SyntheticNoise(ABC):
     def noise_or_not(self):
         del self._x
 
-    @abstractmethod  # Decorator to define an abstract method
+    @abstractmethod
+    def add_noise(self, X:np.ndarray, y:np.ndarray):
+        """Add noise to input data (X, y)
+        """
+        pass
+
     def make_noise_transition_matrix(self):
         """Make noise transition matrix to inject noise
 
@@ -26,12 +31,6 @@ class SyntheticNoise(ABC):
         classification problems. M[i, j] denotes the probability
         that the observed (noisy) label is i, when the ground 
         truth (true) label is j.
-        """
-        pass
-
-    @abstractmethod
-    def add_noise(self, X:np.ndarray, y:np.ndarray):
-        """Add noise to input data (X, y)
         """
         pass
     

@@ -22,6 +22,10 @@ class Aqdata(Dataset):
         # TODO : (mononito/arvind) : please make sure you're updating `noise_or_not` once labels are corrupted with noise
         if 'attention_mask' in kwargs: self.attention_masks = kwargs['attention_mask']
 
+        # Multi-Annotator Datasets
+        self.annotator_labels = kwargs['annotator_labels'] if 'annotator_labels' in kwargs else None
+        
+
     def clean_data(self, label_issues):
         self.data = self.data[~label_issues]
         self.labels = self.labels[~label_issues]

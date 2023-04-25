@@ -4,12 +4,12 @@
         "credit_fraud"
     ],
     "methods" : [
-        "simifeat",
         "cincer",
         "cleanlab",
+        "simifeat",
         "aum"
     ],
-    "device" : "cuda:1",
+    "device" : "cuda:0",
     "architecture" :{
         "image" : "mobilenet_v2",
         "text" : "roberta-base",
@@ -17,6 +17,6 @@
         "tabular": "mlp"
     },
     "random_seed": 42,
-    "results_dir": "/home/scratch/mgoswami/",
-    "debug": false 
+    "results_dir": "/home/scratch/arvindsr/labelerrors/",
+    "debug": false
 }

@@ -60,7 +60,11 @@ def __load_cifar10H_softlabels(label_path, agreement_threshold=0.5):
 
 def __load_cifar10N_softlabels(label_path):
     labels = torch.load(label_path)
-    return labels['aggre_label']
+
+     # Shape: (A, N) - A: # Annotators, N: # Data Points
+    annotator_labels = np.stack([labels['random_label'+str(i)] for i in range(1, 4)])  
+
+    return labels['aggre_label'], annotator_labels
 
 
 def __load_imdb(data_path):
@@ -131,14 +135,14 @@ def __detect_and_process_categorical(df: pd.DataFrame,
 def load_cifar10(cfg):
     # Load train data
     data_cifar, label_cifar = __load_cifar10_train(cfg['train']['data'])
-    labels_annot = __load_cifar10N_softlabels(cfg['train']['annot_labels'])
+    labels_annot, annotator_labels = __load_cifar10N_softlabels(cfg['train']['annot_labels'])
     
     logging.info(f"Total number of human annotated label issues: {(labels_annot != label_cifar).sum()}")
     # Load test data
     data_cifar_test, label_cifar_test = __load_cifar10_test(cfg['test']['data'])
     labels_annot_test = __load_cifar10H_softlabels(cfg['test']['annot_labels'], agreement_threshold=0.9)
 
-    return Aqdata(data_cifar, label_cifar, corrected_labels=labels_annot), Aqdata(data_cifar_test, label_cifar_test, corrected_labels=labels_annot_test)
+    return Aqdata(data_cifar, label_cifar, corrected_labels=labels_annot, annotator_labels=annotator_labels), Aqdata(data_cifar_test, label_cifar_test, corrected_labels=labels_annot_test)
     
 
 def load_imdb(cfg):
