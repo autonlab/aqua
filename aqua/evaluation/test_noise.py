@@ -5,6 +5,7 @@ sys.path.append('../../')
 import numpy as np
 from aqua.evaluation.uniform_noise import UniformNoise
 from aqua.evaluation.dissenting_label_noise import DissentingLabelNoise
+from aqua.evaluation.dissenting_worker_noise import DissentingWorkerNoise
 from aqua.configs import data_configs
 from aqua.data.preset_dataloaders import load_cifar10
 
@@ -83,9 +84,15 @@ def main():
     test_cifar10(noise_obj)
 
     print("\n---- Testing Dissenting Label Noise ---")
-    noise_args = {"n_classes":5, "noise_rate":0.2}
+    noise_args = {"n_classes":10, "noise_rate":0.2}
     noise_obj = DissentingLabelNoise(**noise_args)
-    test_synthetic(noise_obj, n=10000, k=5, f=64)
+    test_synthetic(noise_obj, n=10000, k=10, f=64)
+    test_cifar10(noise_obj)
+
+    print("\n---- Testing Dissenting Label Noise ---")
+    noise_args = {"n_classes":10, "noise_rate":0.2}
+    noise_obj = DissentingWorkerNoise(**noise_args)
+    test_synthetic(noise_obj, n=10000, k=10, f=64)
     test_cifar10(noise_obj)
 
 if __name__ == '__main__':
