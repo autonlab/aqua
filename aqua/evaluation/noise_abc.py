@@ -5,6 +5,7 @@ from sklearn.preprocessing import OneHotEncoder
 class SyntheticNoise(ABC):    
     def __init__(self):
         self._noise_or_not = None
+        self.multi_annotator = False
 
     @property
     def noise_or_not(self):

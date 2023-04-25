@@ -4,18 +4,18 @@ import random
 from .noise_abc import SyntheticNoise
 
 class DissentingLabelNoise(SyntheticNoise):
-    def __init__(self, n_classes:int=2, noise_rate:float=0.2):
+    def __init__(self, n_classes:int=2, noise_rate:float=0.2, **kwargs):
         super().__init__()
         self.n_classes = n_classes
         self.p = noise_rate
+        self.multi_annotator = True
 
     def add_noise(self, X:np.array, y:np.array, annotator_y:np.array):
-        n_classes = 10
+        n_classes = self.n_classes
         N = X.shape[0]
         
         annotator_label_set = np.apply_along_axis(set, axis=0, arr=annotator_y)
 
-        #y = labels['aggre_label']
         noisy_y = deepcopy(y)
 
         sample_indices = np.arange(N)
