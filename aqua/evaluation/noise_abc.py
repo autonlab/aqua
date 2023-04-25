@@ -82,6 +82,3 @@ class SyntheticNoise(ABC):
         """Infer number of label classes
         """
         return len(np.unique(y))
-        
-
-
