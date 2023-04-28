@@ -1,7 +1,5 @@
+import numpy as np
 import sklearn.metrics as skm
 
-def get_experiment_1_metrics(noisy_preds, clean_preds):
-    pass
-
-def performance_report():
-    pass
+def f1_score(y_true: np.ndarray, y_pred: np.ndarray):
+    return round(skm.f1_score(y_true, y_pred, average='weighted'), 6)

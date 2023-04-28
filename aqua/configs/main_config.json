@@ -1,14 +1,11 @@
 {
     "datasets" : [
-        "tweeteval"
+        "cifar10"
     ],
     "methods" : [
-        "cincer",
-        "cleanlab",
-        "simifeat",
-        "aum"
+        "simifeat"
     ],
-    "device" : "cuda:0",
+    "device" : "cuda:1",
     "architecture" :{
         "image" : "mobilenet_v2",
         "text" : "roberta-base",
@@ -16,6 +13,7 @@
         "tabular": "mlp"
     },
     "random_seed": 42,
-    "results_dir": "/home/scratch/arvindsr/labelerrors/",
-    "debug": false
+    "results_dir": "/home/scratch/vsanil/",
+    "debug": false,
+    "experiment": 2
 }

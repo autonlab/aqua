@@ -1,22 +1,25 @@
 import numpy as np
 import pandas as pd
+import logging
 from torch.utils.data import Dataset
 
 from aqua.utils import load_single_datapoint
+from aqua.evaluation import *
 
 class Aqdata(Dataset):
     def __init__(self, data, ground_labels,
                  **kwargs):
         self.data = data
         self.labels = ground_labels
+        self.n_classes = pd.unique(self.labels).shape[0]
         self.corrected_labels = kwargs['corrected_labels'] if 'corrected_labels' in kwargs else None
         self.lazy_load = kwargs['lazy_load'] if 'lazy_load' in kwargs else False
         self.kwargs = kwargs
         self.attention_masks = None
 
         # Additional capability to add noise
-        self.noise_rate = kwargs['noise_rate'] if 'noise_rate' in kwargs else 0.0
-        self.noise_type = kwargs['noise_type'] if 'noise_type' in kwargs else None
+        self._noise_rate = kwargs['noise_rate'] if 'noise_rate' in kwargs else 0.0
+        self.noise_type = kwargs['noise_type'] if 'noise_type' in kwargs else 'uniform'
         self.noise_prior = None
         self.noise_or_not = np.array([False]*data.shape[0]) # Keeps track of labels purposefully corrupted by noise
         # TODO : (mononito/arvind) : please make sure you're updating `noise_or_not` once labels are corrupted with noise
@@ -24,7 +27,18 @@ class Aqdata(Dataset):
 
         # Multi-Annotator Datasets
         self.annotator_labels = kwargs['annotator_labels'] if 'annotator_labels' in kwargs else None
-        
+
+        # Add noise if noise_rate is > 0.0
+        if self.noise_rate > 0.0:
+            self.data, self.labels = self.add_noise(self.data, self.labels)
+    @property
+    def noise_rate(self):
+        return self._noise_rate
+    
+    @noise_rate.setter
+    def noise_rate(self, noise_rate):
+        self._noise_rate = noise_rate
+        self.data, self.labels = self.add_noise(self.data, self.labels)
 
     def clean_data(self, label_issues):
         self.data = self.data[~label_issues]
@@ -39,7 +53,24 @@ class Aqdata(Dataset):
             self.attention_masks = self.attention_masks[inds]
     
     def add_noise(self, data, labels):
-        raise NotImplementedError
+        logging.info(f"Adding noise with noise rate: {self.noise_rate}")
+    
+        if self.noise_type == 'uniform':
+            self.noise_model = UniformNoise(self.n_classes, self.noise_rate)
+        elif self.noise_type == 'dissenting_worker':
+            self.noise_model = DissentingWorkerNoise(self.n_classes, self.noise_rate)
+        elif self.noise_type == 'dissenting_label':
+            self.noise_model = DissentingLabelNoise(self.n_classes, self.noise_rate)
+        else:
+            RuntimeError(f"Incorrect noise type provided: {self.noise_type}, currently supported noise types: uniform, dissenting_worker, dissenting_label")
+            
+        if self.noise_model.multi_annotator:
+            noisy_X, noisy_y = self.noise_model.add_noise(X=data, y=labels, annotator_y=self.annotator_labels)
+        else:
+            noisy_X, noisy_y = self.noise_model.add_noise(X=data, y=labels)
+        self.noise_or_not = self.noise_model.noise_or_not
+
+        return noisy_X, noisy_y
 
     def __len__(self):
         return self.data.shape[0]
