@@ -17,4 +17,5 @@ sktime==0.17.0
 nltk==3.8.1
 wfdb==4.1.0
 datasets==2.11.0
+dill==0.3.6
 torchvision

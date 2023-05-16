@@ -147,6 +147,8 @@ def run_experiment_2(data_aq: Aqdata,
             with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/cleaning_model_noiserate_{noise_rate}.pkl'), 'wb') as file:
                 dumps(cleaning_base_model, file)
 
+            # TODO : (vedant) save a model base classification model trained on base noisy data
+
         del noisy_data_aq
         del cleaning_optim
         del cleaning_base_model
@@ -206,7 +208,9 @@ def generate_report(timestring=None, file=None, experiment_num=1):
                                                     device=main_config['device'],
                                                     timestring=None,
                                                     file=file)
-                    for key, value in label_issue_dict:
+                    
+                    # TODO : (vedant) : add predicted class and ground truth label
+                    for key, value in label_issue_dict.items():
                         if key not in data_results_dict:
                             data_results_dict[key] = {}
 

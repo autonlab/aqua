@@ -4,7 +4,7 @@ import logging
 from torch.utils.data import Dataset
 
 from aqua.utils import load_single_datapoint
-from aqua.evaluation import *
+from aqua.evaluation.noise import *
 
 class Aqdata(Dataset):
     def __init__(self, data, ground_labels,

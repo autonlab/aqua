@@ -14,6 +14,7 @@
     },
     "random_seed": 42,
     "results_dir": "/home/scratch/vsanil/",
-    "debug": false,
-    "experiment": 2
+    "debug": true,
+    "experiment": 2,
+    "grid_search_threads": 4
 }
