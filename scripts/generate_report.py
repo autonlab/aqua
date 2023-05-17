@@ -8,7 +8,7 @@ import torch
 
 from joblib import Parallel, delayed
 
-from aqua.report import generate_report, check_config
+from aqua.report import generate_report #, check_config
 from aqua.evaluation.eval_utils import get_hyperparam_dict
 
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -35,22 +35,26 @@ def run_single_config(respath):
             generate_report(respath, f, main_config['experiment'])
     else:
         generate_report(experiment_num=main_config['experiment'])
-    
+
+def to_str(value):
+    if type(value) == list:
+        return ",".join(map(str, value))
+    return str(value)
 
 def run_single_grid_config(timestring, gpus, run_id, config):
     base_config, clean_config = config[0], config[1]
     architecture = main_config['architecture'][data_configs[main_config['datasets'][0]]['modality']]
 
-    base_config_name = architecture+'_'+'_'.join([key+'_'+str(value) for key, value in base_config.items()])
-    clean_config_name = main_config['methods'][0]+'_'+'_'.join([key+'_'+str(value) for key, value in clean_config.items()])
+    base_config_name = architecture+'_'+'_'.join([key+'_'+to_str(value) for key, value in base_config.items()])
+    clean_config_name = main_config['methods'][0]+'_'+'_'.join([key+'_'+to_str(value) for key, value in clean_config.items()])
 
     device = gpus[run_id % len(gpus)]
     random_seed = main_config['random_seed']
     main_config['device'] = device
 
-    timestring = timestring + f'randomseed_{random_seed}/{base_config_name}/{clean_config_name}'
+    timestring = timestring + f'_randomseed_{random_seed}/{base_config_name}/{clean_config_name}'
     if not DEBUG:
-        os.makedirs(os.path.join(main_config['results_dir'], f'results/results_{timestring}'))
+        os.makedirs(os.path.join(main_config['results_dir'], f'results/results_{timestring}'), exist_ok=True)
 
     for key, value in base_config.items():
         model_configs['base'][architecture][key] = value
@@ -59,7 +63,7 @@ def run_single_grid_config(timestring, gpus, run_id, config):
         model_configs['cleaning'][main_config['methods'][0]][key] = value
 
     if not DEBUG:
-        with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/report.txt'), 'w') as f:
+        with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/report.txt'), 'a') as f:
             generate_report(timestring, f, main_config['experiment'])
     else:
         generate_report(experiment_num=main_config['experiment'])
@@ -75,7 +79,7 @@ def main():
             os.makedirs(os.path.join(main_config['results_dir'], 'results'))
         os.makedirs(os.path.join(main_config['results_dir'], f'results/results_{timestring}'))
 
-    if main_config['grid_search_threads'] == 1:
+    if not main_config['grid_search']: 
         run_single_config(timestring)
     else:
         avail_gpus = get_available_gpus()
@@ -89,7 +93,8 @@ def main():
                 main_config['datasets'] = [dataset]
                 main_config['methods'] = [method]
                 hyperparams = get_hyperparam_dict(main_config['architecture'][data_configs[dataset]['modality']], method)
-                results = Parallel(n_jobs=1)(delayed(run_single_grid_config)(timestring, avail_gpus, idx, params) for idx, params in enumerate(hyperparams[:4]))
+                
+                results = Parallel(n_jobs=1)(delayed(run_single_grid_config)(timestring, avail_gpus, idx, params) for idx, params in enumerate(hyperparams))
 
 if __name__ == '__main__':
     main()

@@ -120,6 +120,7 @@ def run_experiment_2(data_aq: Aqdata,
                      file=None) -> dict:
     # Define the cleaning method that will detect label issues
     label_issue_dict = {}
+    print(f"Cleaning Method: {method}", file=file)
     for noise_rate in [0.1, 0.2]:
         noisy_data_aq = copy.deepcopy(data_aq)
         noisy_data_aq.noise_rate = noise_rate
@@ -208,8 +209,7 @@ def generate_report(timestring=None, file=None, experiment_num=1):
                                                     device=main_config['device'],
                                                     timestring=None,
                                                     file=file)
-                    
-                    # TODO : (vedant) : add predicted class and ground truth label
+                    print(label_issue_dict)
                     for key, value in label_issue_dict.items():
                         if key not in data_results_dict:
                             data_results_dict[key] = {}
