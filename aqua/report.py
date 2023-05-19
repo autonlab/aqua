@@ -1,5 +1,5 @@
 import os, json, copy, logging, sys
-from dill import dumps
+from dill import dump
 import torch 
 import numpy as np
 import pandas as pd
@@ -34,7 +34,6 @@ def run_experiment_1(data_aq: Aqdata,
                      dataset: str, 
                      method: str,
                      device: str='cuda:0',
-                     timestring: str=None,
                      file=None):
     # Refer to doc for an exact defintion of experiment 1
 
@@ -146,7 +145,7 @@ def run_experiment_2(data_aq: Aqdata,
         
         if timestring is not None:
             with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/cleaning_model_noiserate_{noise_rate}.pkl'), 'wb') as file:
-                dumps(cleaning_base_model, file)
+                dump(cleaning_base_model, file)
 
             # TODO : (vedant) save a model base classification model trained on base noisy data
 
@@ -155,6 +154,40 @@ def run_experiment_2(data_aq: Aqdata,
         del cleaning_base_model
 
     return label_issue_dict
+
+
+def run_experiment_3(data_aq: Aqdata,
+                     data_aq_test: Aqdata,
+                     architecture: str,
+                     modality: str,
+                     dataset: str,
+                     device:str ="cuda:0",
+                     timestring:str = None,
+                     file=None) -> None:
+    
+    # Train a model on base training data
+    noisy_base_model = model_dict[modality](main_config['architecture'][modality], 
+                         output_dim=data_configs[dataset]['out_classes'],
+                         **model_configs['base'][architecture])
+    noisy_optim = get_optimizer(noisy_base_model, architecture)
+    noisy_base_model = TrainAqModel(noisy_base_model, 
+                                    architecture, 
+                                    'noisy', 
+                                    dataset, 
+                                    device,
+                                    noisy_optim)
+    noisy_base_model.fit_predict(copy.deepcopy(data_aq))
+    noisy_test_labels = noisy_base_model.predict(copy.deepcopy(data_aq_test))
+    logging.debug("Base model trained on noisy data")
+
+    print(f"Uncleaned Model's F1 Score: {f1_score(noisy_test_labels, data_aq_test.labels)}", file=file)
+
+    if timestring is not None:
+        with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/noisy_model.pkl'), 'wb') as file:
+            dump(noisy_base_model, file)
+
+    del noisy_base_model
+    del noisy_optim
 
 
 def generate_report(timestring=None, file=None, experiment_num=1):
@@ -174,6 +207,20 @@ def generate_report(timestring=None, file=None, experiment_num=1):
         logging.info(f"Running on dataset: {dataset}")
         dataset_config = pformat(data_configs[dataset])
         logging.info(f"Dataset config: \n{dataset_config} \n\n\n")
+
+        if experiment_num == 3:
+            run_experiment_3(data_aq,
+                            data_aq_test,
+                            architecture,
+                            modality,
+                            dataset,
+                            device=main_config['device'],
+                            timestring=timestring,
+                            file=file)
+            
+            print(42*"=", file=file)
+            continue
+
         for method in main_config['methods']:
             logging.info(f"Running {method} on dataset {dataset} with a base architecture {architecture}")
             curr_model_config = pformat(model_configs['base'][architecture])
@@ -190,7 +237,6 @@ def generate_report(timestring=None, file=None, experiment_num=1):
                                                     dataset, 
                                                     method,
                                                     device=main_config['device'],
-                                                    timestring=None,
                                                     file=file)
                     data_results_dict[method] = label_issues.tolist()
                 
@@ -207,9 +253,8 @@ def generate_report(timestring=None, file=None, experiment_num=1):
                                                     dataset, 
                                                     method,
                                                     device=main_config['device'],
-                                                    timestring=None,
+                                                    timestring=timestring,
                                                     file=file)
-                    print(label_issue_dict)
                     for key, value in label_issue_dict.items():
                         if key not in data_results_dict:
                             data_results_dict[key] = {}
@@ -232,7 +277,7 @@ def generate_report(timestring=None, file=None, experiment_num=1):
             if experiment_num == 1:
                 data_results_df = pd.DataFrame.from_dict(data_results_dict)
                 data_results_df.to_csv(os.path.join(main_config['results_dir'], f'results/results_{timestring}/{dataset}_label_issues.csv'))
-            else:
+            elif experiment_num == 2:
                 for key, value in data_results_dict.items():
                     data_results_df = pd.DataFrame.from_dict(data_results_dict)
                     data_results_df.to_csv(os.path.join(main_config['results_dir'], f'results/results_{timestring}/{dataset}_noiserate_{key}_label_issues.csv'))

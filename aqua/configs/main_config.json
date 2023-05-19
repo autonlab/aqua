@@ -1,12 +1,14 @@
 {
     "datasets" : [
-        "mitbih",
-        "duckduckgeese"
+        "cifar10"
     ],
     "methods" : [
+        "simifeat",
+        "cleanlab",
+        "cincer",
         "aum"
     ],
-    "device" : "cuda:2",
+    "device" : "cuda:3",
     "architecture" :{
         "image" : "resnet18",
         "text" : "roberta-base",
@@ -14,8 +16,8 @@
         "tabular": "mlp"
     },
     "random_seed": 42,
-    "results_dir": "/home/scratch/arvindsr/labelerrors/",
+    "results_dir": "/home/scratch/vsanil/aqua",
     "debug": false,
-    "experiment": 2,
+    "experiment": 3,
     "grid_search": true
 }

@@ -45,16 +45,26 @@ def run_single_grid_config(timestring, gpus, run_id, config):
     base_config, clean_config = config[0], config[1]
     architecture = main_config['architecture'][data_configs[main_config['datasets'][0]]['modality']]
 
-    base_config_name = architecture+'_'+'_'.join([key+'_'+to_str(value) for key, value in base_config.items()])
-    clean_config_name = main_config['methods'][0]+'_'+'_'.join([key+'_'+to_str(value) for key, value in clean_config.items()])
+    base_config_name, clean_config_name = '', ''
+    if base_config:
+        base_config_name = architecture+'_'+'_'.join([key+'_'+to_str(value) for key, value in base_config.items()])
+    if clean_config:
+        clean_config_name = main_config['methods'][0]+'_'+'_'.join([key+'_'+to_str(value) for key, value in clean_config.items()])
 
     device = gpus[run_id % len(gpus)]
     random_seed = main_config['random_seed']
-    main_config['device'] = device
 
-    timestring = timestring + f'_randomseed_{random_seed}/{base_config_name}/{clean_config_name}'
+    timestring = timestring + f'/randomseed_{random_seed}/{base_config_name}/{clean_config_name}'
     if not DEBUG:
         os.makedirs(os.path.join(main_config['results_dir'], f'results/results_{timestring}'), exist_ok=True)
+        logging.basicConfig(
+            format='%(message)s',
+            handlers=[
+                #logging.StreamHandler(sys),
+                logging.FileHandler(os.path.join(os.path.join(main_config['results_dir'], f'results/results_{timestring}', 'run_info.log')))
+            ],
+            level=logging.INFO
+        )
 
     for key, value in base_config.items():
         model_configs['base'][architecture][key] = value
@@ -89,6 +99,12 @@ def main():
 
         # TODO : (vedant) : this does make the code a little unclean, since we are iterating over dataset and method inside generate_report too. fix??
         for dataset in datasets:
+            if main_config['experiment'] == 3:
+                hyperparams = get_hyperparam_dict(main_config['architecture'][data_configs[dataset]['modality']], None)
+                for idx, params in enumerate(hyperparams):
+                    run_single_grid_config(timestring, avail_gpus, idx, params)
+                continue
+
             for method in cleaning_methods:
                 main_config['datasets'] = [dataset]
                 main_config['methods'] = [method]
