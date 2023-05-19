@@ -99,6 +99,7 @@ def main():
 
         # TODO : (vedant) : this does make the code a little unclean, since we are iterating over dataset and method inside generate_report too. fix??
         for dataset in datasets:
+            main_config['datasets'] = [dataset]
             if main_config['experiment'] == 3:
                 hyperparams = get_hyperparam_dict(main_config['architecture'][data_configs[dataset]['modality']], None)
                 for idx, params in enumerate(hyperparams):
@@ -106,7 +107,6 @@ def main():
                 continue
 
             for method in cleaning_methods:
-                main_config['datasets'] = [dataset]
                 main_config['methods'] = [method]
                 hyperparams = get_hyperparam_dict(main_config['architecture'][data_configs[dataset]['modality']], method)
                 

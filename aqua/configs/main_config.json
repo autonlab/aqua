@@ -1,6 +1,7 @@
 {
     "datasets" : [
-        "cifar10"
+        "mushrooms",
+        "mitbih"
     ],
     "methods" : [
         "simifeat",
