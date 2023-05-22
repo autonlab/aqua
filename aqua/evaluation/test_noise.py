@@ -9,7 +9,6 @@ from aqua.evaluation.dissenting_worker_noise import DissentingWorkerNoise
 from aqua.configs import data_configs
 from aqua.data.preset_dataloaders import load_cifar10
 
-
 def create_synthetic_data(n=10000, k=5, f=64):
     """Generate synthetic data
 
