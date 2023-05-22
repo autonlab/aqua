@@ -1,5 +1,6 @@
 # Ignore certain directories
 results/*
+dev/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

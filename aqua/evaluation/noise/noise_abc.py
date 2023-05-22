@@ -25,12 +25,6 @@ class SyntheticNoise(ABC):
         """
         pass
 
-    @abstractmethod
-    def add_noise(self, X:np.ndarray, y:np.ndarray):
-        """Add noise to input data (X, y)
-        """
-        pass
-
     def make_noise_transition_matrix(self):
         """Make noise transition matrix to inject noise
 
@@ -89,6 +83,3 @@ class SyntheticNoise(ABC):
         """Infer number of label classes
         """
         return len(np.unique(y))
-        
-
-

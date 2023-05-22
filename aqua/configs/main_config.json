@@ -13,7 +13,7 @@
     "architecture" :{
         "image" : "resnet18",
         "text" : "roberta-base",
-        "timeseries": "fcn", 
+        "timeseries": "resnet1d", 
         "tabular": "mlp"
     },
     "random_seed": 42,
