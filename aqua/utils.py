@@ -67,7 +67,17 @@ def config_sanity_checks():
         raise RuntimeError(f"Incorrect base architecture provided in main_config.json: {incorrect_architectures}, currently supported datasets: {list(model_configs['base'].keys())}")
     
 
-    
+def get_available_gpus():
+    """
+    Get list of all available, empty GPUs
+    """
+    avail_gpus = []
+    for i in range(torch.cuda.device_count()):
+        free_mem = torch.cuda.mem_get_info(i)[0] * 1e-9
+        if free_mem > 10.0:
+            avail_gpus.append(f'cuda:{i}') 
+    return avail_gpus
+
 ###################### DATA LOADING UTILS ####################
 def __load_dcm(path):
     arr = np.repeat(dicom.dcmread(path).pixel_array[np.newaxis, :, :], 3, axis=0)

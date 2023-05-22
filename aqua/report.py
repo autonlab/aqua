@@ -1,4 +1,5 @@
 import os, json, copy, logging, sys
+from dill import dump
 import torch 
 import numpy as np
 import pandas as pd
@@ -11,7 +12,7 @@ import aqua.data.preset_dataloaders as presets
 from aqua.models.base_architectures import ConvNet, BertNet, TabularNet, TimeSeriesNet
 from aqua.data.process_data import Aqdata
 
-from sklearn.metrics import f1_score
+from aqua.metrics import *
 
 from pprint import pformat
 
@@ -23,8 +24,8 @@ model_dict = {
     'tabular': TabularNet
 }
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+# logger = logging.getLogger()
+# logger.setLevel(logging.INFO)
 
 def run_experiment_1(data_aq: Aqdata, 
                      data_aq_test: Aqdata, 
@@ -77,13 +78,13 @@ def run_experiment_1(data_aq: Aqdata,
     
     del cleaning_optim
     del cleaning_base_model
-    logger.debug("Label issues detected, number of label issues found: ", np.sum(label_issues))
+    logging.debug("Label issues detected, number of label issues found: ", np.sum(label_issues))
 
 
     # Clean the data 
     data_aq_clean = copy.deepcopy(data_aq)
     data_aq_clean.clean_data(label_issues) 
-    logger.debug("Data cleaned using detected label issues")
+    logging.debug("Data cleaned using detected label issues")
 
     # Train a new model on cleaned data
     clean_base_model = model_dict[modality](main_config['architecture'][modality], 
@@ -101,16 +102,98 @@ def run_experiment_1(data_aq: Aqdata,
 
     del clean_optim
     del clean_base_model
-    logger.debug("Base model trained on cleaned data")
+    logging.debug("Base model trained on cleaned data")
 
-    print(f"Cleaning method: {method}, Uncleaned Model's F1 Score: {round(f1_score(noisy_test_labels, data_aq_test.labels, average='weighted'), 6)}", f"Cleaned Model's F1 Score: {round(f1_score(clean_test_labels, data_aq_test.labels, average='weighted'), 6)}\n", file=file)
+    print(f"Cleaning method: {method}, Uncleaned Model's F1 Score: {f1_score(noisy_test_labels, data_aq_test.labels)}", f"Cleaned Model's F1 Score: {f1_score(clean_test_labels, data_aq_test.labels)}\n", file=file)
 
     return label_issues
 
-def generate_report(timestring=None, file=None):
+
+def run_experiment_2(data_aq: Aqdata,
+                     architecture: str,
+                     modality: str,
+                     dataset: str, 
+                     method: str,
+                     device: str='cuda:0',
+                     timestring: str=None,
+                     file=None) -> dict:
+    # Define the cleaning method that will detect label issues
+    label_issue_dict = {}
+    print(f"Cleaning Method: {method}", file=file)
+    for noise_rate in [0.1, 0.2]:
+        noisy_data_aq = copy.deepcopy(data_aq)
+        noisy_data_aq.noise_rate = noise_rate
+
+        logging.debug(f"Number of labels corrupted: {noisy_data_aq.noise_or_not.sum()}")
+
+        extra_dim = 1 if method == 'aum' else 0
+        cleaning_base_model = model_dict[modality](main_config['architecture'][modality], 
+                            output_dim=data_configs[dataset]['out_classes']+extra_dim,
+                            **model_configs['base'][architecture])
+        cleaning_optim = get_optimizer(cleaning_base_model, architecture)
+        cleaning_base_model = TrainAqModel(cleaning_base_model, 
+                                            architecture, 
+                                            method, 
+                                            dataset, 
+                                            device,
+                                            cleaning_optim)
+        label_issues = cleaning_base_model.find_label_issues(noisy_data_aq)
+
+        label_issue_dict[noise_rate] = label_issues
+
+        print(f"F1 Score for noise_rate {noise_rate}: ", f1_score(label_issues, noisy_data_aq.noise_or_not), file=file)
+        
+        if timestring is not None:
+            with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/cleaning_model_noiserate_{noise_rate}.pkl'), 'wb') as file:
+                dump(cleaning_base_model, file)
+
+            # TODO : (vedant) save a model base classification model trained on base noisy data
+
+        del noisy_data_aq
+        del cleaning_optim
+        del cleaning_base_model
+
+    return label_issue_dict
+
+
+def run_experiment_3(data_aq: Aqdata,
+                     data_aq_test: Aqdata,
+                     architecture: str,
+                     modality: str,
+                     dataset: str,
+                     device:str ="cuda:0",
+                     timestring:str = None,
+                     file=None) -> None:
+    
+    # Train a model on base training data
+    noisy_base_model = model_dict[modality](main_config['architecture'][modality], 
+                         output_dim=data_configs[dataset]['out_classes'],
+                         **model_configs['base'][architecture])
+    noisy_optim = get_optimizer(noisy_base_model, architecture)
+    noisy_base_model = TrainAqModel(noisy_base_model, 
+                                    architecture, 
+                                    'noisy', 
+                                    dataset, 
+                                    device,
+                                    noisy_optim)
+    noisy_base_model.fit_predict(copy.deepcopy(data_aq))
+    noisy_test_labels = noisy_base_model.predict(copy.deepcopy(data_aq_test))
+    logging.debug("Base model trained on noisy data")
+
+    print(f"Uncleaned Model's F1 Score: {f1_score(noisy_test_labels, data_aq_test.labels)}", file=file)
+
+    if timestring is not None:
+        with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/noisy_model.pkl'), 'wb') as file:
+            dump(noisy_base_model, file)
+
+    del noisy_base_model
+    del noisy_optim
+
+
+def generate_report(timestring=None, file=None, experiment_num=1):
     print("Generating report... \n\n", file=file)
 
-    print("Experiment 1: \n", file=file)
+    print(f"Experiment {experiment_num}: \n", file=file)
 
     for dataset in main_config['datasets']:
         modality = data_configs[dataset]['modality']
@@ -124,6 +207,20 @@ def generate_report(timestring=None, file=None):
         logging.info(f"Running on dataset: {dataset}")
         dataset_config = pformat(data_configs[dataset])
         logging.info(f"Dataset config: \n{dataset_config} \n\n\n")
+
+        if experiment_num == 3:
+            run_experiment_3(data_aq,
+                            data_aq_test,
+                            architecture,
+                            modality,
+                            dataset,
+                            device=main_config['device'],
+                            timestring=timestring,
+                            file=file)
+            
+            print(42*"=", file=file)
+            continue
+
         for method in main_config['methods']:
             logging.info(f"Running {method} on dataset {dataset} with a base architecture {architecture}")
             curr_model_config = pformat(model_configs['base'][architecture])
@@ -131,29 +228,57 @@ def generate_report(timestring=None, file=None):
             logging.info(f"Config for base architecture {architecture}: \n{curr_model_config}\n")
             logging.info(f"Config for cleaning method {method}: \n{curr_cleaning_config}\n")
 
-            try:
-                label_issues = run_experiment_1(data_aq, 
-                                                data_aq_test, 
-                                                architecture,
-                                                modality, 
-                                                dataset, 
-                                                method,
-                                                device=main_config['device'],
-                                                file=file)
-                data_results_dict[method] = label_issues.tolist()
-            
-            except Exception:
-                logging.info(f"{method} on dataset {dataset} with a base architecture {architecture} failed to run. Stack trace:")
-                logging.exception("Exception")
-                continue
+            if experiment_num == 1:
+                try:
+                    label_issues = run_experiment_1(data_aq, 
+                                                    data_aq_test, 
+                                                    architecture,
+                                                    modality, 
+                                                    dataset, 
+                                                    method,
+                                                    device=main_config['device'],
+                                                    file=file)
+                    data_results_dict[method] = label_issues.tolist()
+                
+                except Exception:
+                    logging.info(f"{method} on dataset {dataset} with a base architecture {architecture} failed to run. Stack trace:")
+                    logging.exception("Exception")
+                    continue
+
+            elif experiment_num == 2:
+                try:
+                    label_issue_dict = run_experiment_2(data_aq, 
+                                                    architecture,
+                                                    modality, 
+                                                    dataset, 
+                                                    method,
+                                                    device=main_config['device'],
+                                                    timestring=timestring,
+                                                    file=file)
+                    for key, value in label_issue_dict.items():
+                        if key not in data_results_dict:
+                            data_results_dict[key] = {}
+
+                        data_results_dict[key][method] = value.tolist()
+                
+                except Exception:
+                    logging.info(f"{method} on dataset {dataset} with a base architecture {architecture} failed to run. Stack trace:")
+                    logging.exception("Exception")
+                    continue
             
         print(42*"=", file=file)
         # Check if human annotated labels are available
 
-        if data_aq.corrected_labels is not None:
-            data_results_dict['Human Annotated Labels'] = (data_aq.corrected_labels != data_aq.labels).tolist()
+        if experiment_num == 1:
+            if data_aq.corrected_labels is not None:
+                data_results_dict['Human Annotated Labels'] = (data_aq.corrected_labels != data_aq.labels).tolist()
         
         if timestring is not None:
-            data_results_df = pd.DataFrame.from_dict(data_results_dict)
-            data_results_df.to_csv(os.path.join(main_config['results_dir'], f'results/results_{timestring}/{dataset}_label_issues.csv'))
+            if experiment_num == 1:
+                data_results_df = pd.DataFrame.from_dict(data_results_dict)
+                data_results_df.to_csv(os.path.join(main_config['results_dir'], f'results/results_{timestring}/{dataset}_label_issues.csv'))
+            elif experiment_num == 2:
+                for key, value in data_results_dict.items():
+                    data_results_df = pd.DataFrame.from_dict(data_results_dict)
+                    data_results_df.to_csv(os.path.join(main_config['results_dir'], f'results/results_{timestring}/{dataset}_noiserate_{key}_label_issues.csv'))
 

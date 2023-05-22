@@ -1,22 +1,24 @@
 {
     "datasets" : [
-        "mitbih",
-        "credit_fraud"
+        "mushrooms",
+        "mitbih"
     ],
     "methods" : [
-        "cincer",
-        "cleanlab",
         "simifeat",
+        "cleanlab",
+        "cincer",
         "aum"
     ],
-    "device" : "cuda:0",
+    "device" : "cuda:3",
     "architecture" :{
-        "image" : "mobilenet_v2",
+        "image" : "resnet18",
         "text" : "roberta-base",
         "timeseries": "resnet1d", 
         "tabular": "mlp"
     },
     "random_seed": 42,
-    "results_dir": "/home/scratch/arvindsr/labelerrors/",
-    "debug": false
+    "results_dir": "/home/scratch/vsanil/aqua",
+    "debug": false,
+    "experiment": 3,
+    "grid_search": true
 }

@@ -3,9 +3,9 @@
 import sys
 sys.path.append('../../')
 import numpy as np
-from aqua.evaluation.uniform_noise import UniformNoise
-from aqua.evaluation.dissenting_label_noise import DissentingLabelNoise
-from aqua.evaluation.dissenting_worker_noise import DissentingWorkerNoise
+from aqua.evaluation.noise.uniform_noise import UniformNoise
+from aqua.evaluation.noise.dissenting_label_noise import DissentingLabelNoise
+from aqua.evaluation.noise.dissenting_worker_noise import DissentingWorkerNoise
 from aqua.configs import data_configs
 from aqua.data.preset_dataloaders import load_cifar10
 
