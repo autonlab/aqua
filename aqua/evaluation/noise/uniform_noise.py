@@ -2,13 +2,7 @@ import numpy as np
 from .noise_abc import SyntheticNoise
 
 class UniformNoise(SyntheticNoise):
-<<<<<<< HEAD
-    def __init__(self, 
-                 n_classes:int=2, 
-                 noise_rate:float=0.2):
-=======
     def __init__(self, n_classes:int=2, noise_rate:float=0.2, **kwargs):
->>>>>>> fbf8b788b81172889cf6b2e3db22fdaec387be3d
         super().__init__()
         self.n_classes = n_classes
         self.noise_transition_matrix = np.identity(n=self.n_classes)
