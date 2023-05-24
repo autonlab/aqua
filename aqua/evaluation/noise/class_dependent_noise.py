@@ -2,8 +2,8 @@ import numpy as np
 from .noise_abc import SyntheticNoise
 from typing import Union, List, Optional
 import numpy.typing as npt 
-from aqua.data.process_data import Aqdata
-from aqua.models.aqmodel import AqModel
+#from aqua.data.process_data import Aqdata
+#from aqua.models.aqmodel import AqModel
 import torch
 from torch.utils.data import DataLoader
 from sklearn.metrics import confusion_matrix
@@ -18,8 +18,8 @@ class ClassDependentNoise(SyntheticNoise):
                  n_classes:int=2, 
                  noise_type:str='confusion_matrix', 
                  noise_transition_matrix:Optional[Union[float, List, npt.NDArray]]=None,
-                 model:Optional[AqModel]=None,
-                 data:Optional[Aqdata]=None,
+                 # model:Optional[AqModel]=None,  Needs to be fixed because circular imports
+                 # data:Optional[Aqdata]=None,   Needs to be fixed because circular import
                  device:Optional[str]='cpu',
                  batch_size:Optional[int]=32):
         super().__init__()

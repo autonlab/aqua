@@ -1,13 +1,10 @@
 {
     "datasets" : [
-        "mushrooms",
-        "mitbih"
+        "compas"
     ],
     "methods" : [
-        "simifeat",
-        "cleanlab",
-        "cincer",
-        "aum"
+        "aum",
+        "simifeat"
     ],
     "device" : "cuda:3",
     "architecture" :{
@@ -19,6 +16,6 @@
     "random_seed": 42,
     "results_dir": "/home/scratch/vsanil/aqua",
     "debug": false,
-    "experiment": 3,
-    "grid_search": true
+    "experiment": 2,
+    "grid_search": false
 }

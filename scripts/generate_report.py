@@ -31,7 +31,7 @@ def run_single_config(respath):
         )
 
     if not DEBUG:
-        with open(os.path.join(main_config['results_dir'], f'results/results_{respath}/report.txt'), 'w') as f:
+        with open(os.path.join(main_config['results_dir'], f'results/results_{respath}/report.txt'), 'a') as f:
             generate_report(respath, f, main_config['experiment'])
     else:
         generate_report(experiment_num=main_config['experiment'])

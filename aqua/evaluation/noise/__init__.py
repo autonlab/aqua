@@ -1,3 +1,5 @@
 from .dissenting_label_noise import DissentingLabelNoise
 from .dissenting_worker_noise import DissentingWorkerNoise
 from .uniform_noise import UniformNoise
+from .asymmetric_noise import AsymmetricNoise
+from .class_dependent_noise import ClassDependentNoise

@@ -31,6 +31,7 @@ class Aqdata(Dataset):
         # Add noise if noise_rate is > 0.0
         if self.noise_rate > 0.0:
             self.data, self.labels = self.add_noise(self.data, self.labels)
+    
     @property
     def noise_rate(self):
         return self._noise_rate
@@ -61,6 +62,8 @@ class Aqdata(Dataset):
             self.noise_model = DissentingWorkerNoise(self.n_classes, self.noise_rate)
         elif self.noise_type == 'dissenting_label':
             self.noise_model = DissentingLabelNoise(self.n_classes, self.noise_rate)
+        elif self.noise_type == 'asymmetric':
+            self.noise_type = AsymmetricNoise(self.n_classes, self.noise_rate)
         else:
             RuntimeError(f"Incorrect noise type provided: {self.noise_type}, currently supported noise types: uniform, dissenting_worker, dissenting_label")
             

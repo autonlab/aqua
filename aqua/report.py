@@ -16,6 +16,8 @@ from aqua.metrics import *
 
 from pprint import pformat
 
+import pdb
+
 
 model_dict = {
     'image': ConvNet,
@@ -118,9 +120,12 @@ def run_experiment_2(data_aq: Aqdata,
                      timestring: str=None,
                      file=None) -> dict:
     # Define the cleaning method that will detect label issues
-    label_issue_dict = {}
+    noise_rates = [0.1, 0.2]
+    label_issue_dict = {n:{} for n in noise_rates}
+    preds_dict = {n:{} for n in noise_rates}
+
     print(f"Cleaning Method: {method}", file=file)
-    for noise_rate in [0.1, 0.2]:
+    for noise_rate in noise_rates:
         noisy_data_aq = copy.deepcopy(data_aq)
         noisy_data_aq.noise_rate = noise_rate
 
@@ -138,14 +143,14 @@ def run_experiment_2(data_aq: Aqdata,
                                             device,
                                             cleaning_optim)
         label_issues = cleaning_base_model.find_label_issues(noisy_data_aq)
-
-        label_issue_dict[noise_rate] = label_issues
+        label_issue_dict[noise_rate]['label_issues'] = label_issues
+        label_issue_dict[noise_rate]['injected_noise'] = noisy_data_aq.noise_or_not
 
         print(f"F1 Score for noise_rate {noise_rate}: ", f1_score(label_issues, noisy_data_aq.noise_or_not), file=file)
         
         if timestring is not None:
-            with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/cleaning_model_noiserate_{noise_rate}.pkl'), 'wb') as file:
-                dump(cleaning_base_model, file)
+            with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/cleaning_model_noiserate_{noise_rate}.pkl'), 'wb') as mf:
+                dump(cleaning_base_model, mf)
 
             # TODO : (vedant) save a model base classification model trained on base noisy data
 
@@ -153,7 +158,30 @@ def run_experiment_2(data_aq: Aqdata,
         del cleaning_optim
         del cleaning_base_model
 
-    return label_issue_dict
+        # Train a new model on cleaned data then generate class predictions on noisy data
+        data_aq_clean = copy.deepcopy(data_aq)
+        data_aq_clean.clean_data(label_issues) 
+
+        # Train a new model on cleaned data
+        clean_base_model = model_dict[modality](main_config['architecture'][modality], 
+                            output_dim=data_configs[dataset]['out_classes'],
+                            **model_configs['base'][architecture])
+        clean_optim = get_optimizer(clean_base_model, architecture)
+        clean_base_model = TrainAqModel(clean_base_model, 
+                                        architecture, 
+                                        'noisy', 
+                                        dataset, 
+                                        device,
+                                        clean_optim)
+        clean_base_model.fit_predict(data_aq_clean)
+        noisy_train_preds = clean_base_model.predict(copy.deepcopy(data_aq))
+        preds_dict[noise_rate]['model_preds'] = noisy_train_preds
+        preds_dict[noise_rate]['true_label'] = data_aq.labels
+
+        del clean_optim
+        del clean_base_model
+
+    return label_issue_dict, preds_dict
 
 
 def run_experiment_3(data_aq: Aqdata,
@@ -247,19 +275,21 @@ def generate_report(timestring=None, file=None, experiment_num=1):
 
             elif experiment_num == 2:
                 try:
-                    label_issue_dict = run_experiment_2(data_aq, 
-                                                    architecture,
-                                                    modality, 
-                                                    dataset, 
-                                                    method,
-                                                    device=main_config['device'],
-                                                    timestring=timestring,
-                                                    file=file)
+                    label_issue_dict, preds_dict = run_experiment_2(data_aq, 
+                                                                    architecture,
+                                                                    modality, 
+                                                                    dataset, 
+                                                                    method,
+                                                                    device=main_config['device'],
+                                                                    timestring=timestring,
+                                                                    file=file)
                     for key, value in label_issue_dict.items():
                         if key not in data_results_dict:
                             data_results_dict[key] = {}
 
-                        data_results_dict[key][method] = value.tolist()
+                        data_results_dict[key][f'label_issues_{method}'] = value['label_issues'].tolist()
+                        data_results_dict[key][f'injected_noise_{method}'] = value['injected_noise'].tolist()
+                        data_results_dict[key][f'preds_cleaned_{method}'] = preds_dict[key]['model_preds'].tolist()
                 
                 except Exception:
                     logging.info(f"{method} on dataset {dataset} with a base architecture {architecture} failed to run. Stack trace:")
@@ -269,7 +299,7 @@ def generate_report(timestring=None, file=None, experiment_num=1):
         print(42*"=", file=file)
         # Check if human annotated labels are available
 
-        if experiment_num == 1:
+        if experiment_num in [1, 2]:
             if data_aq.corrected_labels is not None:
                 data_results_dict['Human Annotated Labels'] = (data_aq.corrected_labels != data_aq.labels).tolist()
         
@@ -279,6 +309,7 @@ def generate_report(timestring=None, file=None, experiment_num=1):
                 data_results_df.to_csv(os.path.join(main_config['results_dir'], f'results/results_{timestring}/{dataset}_label_issues.csv'))
             elif experiment_num == 2:
                 for key, value in data_results_dict.items():
-                    data_results_df = pd.DataFrame.from_dict(data_results_dict)
+                    data_results_df = pd.DataFrame.from_dict(value)
+                    data_results_df['ground_truth_label'] = data_aq.labels.tolist()
                     data_results_df.to_csv(os.path.join(main_config['results_dir'], f'results/results_{timestring}/{dataset}_noiserate_{key}_label_issues.csv'))
 

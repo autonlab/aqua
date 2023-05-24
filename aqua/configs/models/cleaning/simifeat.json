@@ -5,11 +5,11 @@
     "seed": 1,
     "G": 10,
     "cnt": 3000,
-    "max_iter": 400,
+    "max_iter": 1000,
     "local": false,
     "loss": "fw",
     "num_epoch": 1,
-    "min_similarity" :0.0,
-    "Tii_offset": 1.0,
+    "min_similarity" :0.45,
+    "Tii_offset": 2.5,
     "method":"both"
 }
