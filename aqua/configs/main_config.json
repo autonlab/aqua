@@ -1,9 +1,8 @@
 {
     "datasets" : [
-        "compas"
+        "imdb"
     ],
     "methods" : [
-        "aum",
         "simifeat"
     ],
     "device" : "cuda:3",
@@ -14,8 +13,8 @@
         "tabular": "mlp"
     },
     "random_seed": 42,
-    "results_dir": "/home/scratch/vsanil/aqua",
+    "results_dir": "/home/extra_scratch/arvindsr/labelerrors",
     "debug": false,
     "experiment": 2,
-    "grid_search": false
+    "grid_search": true
 }
