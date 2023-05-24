@@ -120,7 +120,7 @@ def run_experiment_2(data_aq: Aqdata,
                      timestring: str=None,
                      file=None) -> dict:
     # Define the cleaning method that will detect label issues
-    noise_rates = [0.1, 0.2]
+    noise_rates = [0.0, 0.1, 0.2]
     label_issue_dict = {n:{} for n in noise_rates}
     preds_dict = {n:{} for n in noise_rates}
 
@@ -146,7 +146,8 @@ def run_experiment_2(data_aq: Aqdata,
         label_issue_dict[noise_rate]['label_issues'] = label_issues
         label_issue_dict[noise_rate]['injected_noise'] = noisy_data_aq.noise_or_not
 
-        print(f"F1 Score for noise_rate {noise_rate}: ", f1_score(label_issues, noisy_data_aq.noise_or_not), file=file)
+        if noise_rate > 0.0:
+            print(f"F1 Score for noise_rate {noise_rate}: ", f1_score(label_issues, noisy_data_aq.noise_or_not), file=file)
         
         if timestring is not None:
             with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/cleaning_model_noiserate_{noise_rate}.pkl'), 'wb') as mf:
@@ -154,12 +155,12 @@ def run_experiment_2(data_aq: Aqdata,
 
             # TODO : (vedant) save a model base classification model trained on base noisy data
 
-        del noisy_data_aq
+        #del noisy_data_aq
         del cleaning_optim
         del cleaning_base_model
 
         # Train a new model on cleaned data then generate class predictions on noisy data
-        data_aq_clean = copy.deepcopy(data_aq)
+        data_aq_clean = copy.deepcopy(noisy_data_aq)
         data_aq_clean.clean_data(label_issues) 
 
         # Train a new model on cleaned data
@@ -174,10 +175,12 @@ def run_experiment_2(data_aq: Aqdata,
                                         device,
                                         clean_optim)
         clean_base_model.fit_predict(data_aq_clean)
-        noisy_train_preds = clean_base_model.predict(copy.deepcopy(data_aq))
+        noisy_train_preds = clean_base_model.predict(copy.deepcopy(noisy_data_aq))
         preds_dict[noise_rate]['model_preds'] = noisy_train_preds
         preds_dict[noise_rate]['true_label'] = data_aq.labels
 
+        del noisy_data_aq
+        del data_aq_clean
         del clean_optim
         del clean_base_model
 
@@ -310,6 +313,6 @@ def generate_report(timestring=None, file=None, experiment_num=1):
             elif experiment_num == 2:
                 for key, value in data_results_dict.items():
                     data_results_df = pd.DataFrame.from_dict(value)
-                    data_results_df['ground_truth_label'] = data_aq.labels.tolist()
+                    data_results_df['observed_labels'] = data_aq.labels.tolist()
                     data_results_df.to_csv(os.path.join(main_config['results_dir'], f'results/results_{timestring}/{dataset}_noiserate_{key}_label_issues.csv'))
 
