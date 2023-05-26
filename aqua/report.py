@@ -37,7 +37,7 @@ def train_base_model(data_aq: Aqdata,
     model_path = os.path.join(main_config['results_dir'], 'model_factory')
     os.makedirs(model_path, exist_ok=True)
 
-    model_name = os.path.join(model_path, f"base_model_{architecture}_randomseed_{main_config['random_seed']}.pkl")
+    model_name = os.path.join(model_path, f"base_model_{architecture}_randomseed_{main_config['random_seed']}_{dataset}.pkl")
     if os.path.exists(model_name):
         with open(model_name, 'rb') as f:
             noisy_base_model = load(f)
