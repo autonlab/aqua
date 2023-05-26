@@ -65,7 +65,9 @@ class ClassDependentNoise(SyntheticNoise):
         noisy_y = np.zeros((_y.shape[0], 1))
         
         for i in range(N): # Can probably be made efficient
-            noisy_y[i] = np.argmax(np.random.multinomial(n=1, pvals=sampling_probabilities[i, :], size=1))
+            probs = sampling_probabilities[i,:].astype('float64')
+            probs /= np.sum(probs)
+            noisy_y[i] = np.argmax(np.random.multinomial(n=1, pvals=probs, size=1))
         
         noisy_y = noisy_y.squeeze().astype(int)
 
