@@ -54,7 +54,7 @@ def run_single_grid_config(timestring, gpus, run_id, config):
     device = gpus[run_id % len(gpus)]
     random_seed = main_config['random_seed']
 
-    timestring = timestring + f'/randomseed_{random_seed}/{base_config_name}/{clean_config_name}'
+    timestring = timestring + f'/{base_config_name}/{clean_config_name}'
     if not DEBUG:
         os.makedirs(os.path.join(main_config['results_dir'], f'results/results_{timestring}'), exist_ok=True)
         logging.basicConfig(
@@ -84,6 +84,7 @@ def main():
     seed_everything(int(main_config['random_seed']))
 
     timestring = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+    timestring = f"{timestring}_randomseed_{main_config['random_seed']}"
     if not DEBUG:
         if not os.path.exists(os.path.join(main_config['results_dir'], 'results')):
             os.makedirs(os.path.join(main_config['results_dir'], 'results'))

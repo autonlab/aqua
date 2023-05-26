@@ -3,3 +3,4 @@ from .dissenting_worker_noise import DissentingWorkerNoise
 from .uniform_noise import UniformNoise
 from .asymmetric_noise import AsymmetricNoise
 from .class_dependent_noise import ClassDependentNoise
+from .instance_dependent_noise import InstanceDependentNoise

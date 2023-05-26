@@ -18,8 +18,8 @@ class ClassDependentNoise(SyntheticNoise):
                  n_classes:int=2, 
                  noise_type:str='confusion_matrix', 
                  noise_transition_matrix:Optional[Union[float, List, npt.NDArray]]=None,
-                 # model:Optional[AqModel]=None,  Needs to be fixed because circular imports
-                 # data:Optional[Aqdata]=None,   Needs to be fixed because circular import
+                 model = None,
+                 data = None,
                  device:Optional[str]='cpu',
                  batch_size:Optional[int]=32):
         super().__init__()
@@ -90,7 +90,7 @@ class ClassDependentNoise(SyntheticNoise):
         # Send model to device
         model = model.to(self.device)
         with torch.no_grad():
-            for (data, target, _, _, _) in tqdm(dataloader):
+            for (data, target, _, _, _) in tqdm(dataloader, desc='Class Dependent Noise:'):
 
                 data = data.to(self.device)
                 target = target.to(self.device)

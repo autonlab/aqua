@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 
 from aqua.utils import load_single_datapoint
 from aqua.evaluation.noise import *
+from aqua.configs import main_config
 
 class Aqdata(Dataset):
     def __init__(self, data, ground_labels,
@@ -37,9 +38,14 @@ class Aqdata(Dataset):
         return self._noise_rate
     
     @noise_rate.setter
-    def noise_rate(self, noise_rate):
+    def noise_rate(self, noise_args):
+        noise_kwargs = {}
+        if isinstance(noise_args, (tuple, list)):
+            noise_rate, noise_kwargs = noise_args[0], noise_args[1]
+        else:
+            noise_rate = noise_args
         self._noise_rate = noise_rate
-        self.data, self.labels = self.add_noise(self.data, self.labels)
+        self.data, self.labels = self.add_noise(self.data, self.labels, noise_kwargs)
 
     def clean_data(self, label_issues):
         self.data = self.data[~label_issues]
@@ -53,7 +59,7 @@ class Aqdata(Dataset):
         if self.attention_masks is not None:
             self.attention_masks = self.attention_masks[inds]
     
-    def add_noise(self, data, labels):
+    def add_noise(self, data, labels, noise_kwargs={}):
         logging.info(f"Adding noise with noise rate: {self.noise_rate}")
     
         if self.noise_type == 'uniform':
@@ -63,9 +69,21 @@ class Aqdata(Dataset):
         elif self.noise_type == 'dissenting_label':
             self.noise_model = DissentingLabelNoise(self.n_classes, self.noise_rate)
         elif self.noise_type == 'asymmetric':
-            self.noise_type = AsymmetricNoise(self.n_classes, self.noise_rate)
+            self.noise_model = AsymmetricNoise(self.n_classes, self.noise_rate)
+        elif self.noise_type == 'class_dependent':
+            self.noise_model = ClassDependentNoise(self.n_classes, 
+                                                  model=noise_kwargs['model'],
+                                                  data=noise_kwargs['data'],
+                                                  device=main_config['device'],
+                                                  batch_size=noise_kwargs['batch_size'])
+        elif self.noise_type == 'instance_dependent':
+            self.noise_model = InstanceDependentNoise(self.n_classes,
+                                                     noise_rate=self.noise_rate,
+                                                     model=noise_kwargs['model'],
+                                                     device=main_config['device'],
+                                                     batch_size=noise_kwargs['batch_size'])
         else:
-            RuntimeError(f"Incorrect noise type provided: {self.noise_type}, currently supported noise types: uniform, dissenting_worker, dissenting_label")
+            raise RuntimeError(f"Incorrect noise type provided: {self.noise_type}, currently supported noise types: uniform, dissenting_worker, dissenting_label")
             
         if self.noise_model.multi_annotator:
             noisy_X, noisy_y = self.noise_model.add_noise(X=data, y=labels, annotator_y=self.annotator_labels)

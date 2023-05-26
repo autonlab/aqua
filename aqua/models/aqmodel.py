@@ -54,7 +54,7 @@ class AqModel:
         label_issues = self.wrapper_model.find_label_issues(data_aq, **cleaning_model_config)
             
         # Label issues must be False if no issue, True if there is an issue
-        return label_issues
+        return label_issues.astype(int)
     
 
     def _split_data(self, data_aq,
