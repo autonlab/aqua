@@ -2,6 +2,7 @@ import random, os
 import numpy as np
 import torch
 import pydicom as dicom
+from PIL import Image
 from typing import Union
 
 from aqua.configs import model_configs, data_configs, main_config
@@ -86,9 +87,16 @@ def __load_dcm(path):
     #arr /= [0.299, 0.224, 0.225]
     return arr.astype(np.float32)
 
+def __load_jpg(path):
+    arr = np.asarray(Image.open(path))
+    arr = (arr - arr.min())/(arr.max() - arr.min())
+    return arr.astype(np.float32)
+
 def load_single_datapoint(path: str):
     if path.endswith('.dcm'):
         return __load_dcm(path)
+    elif path.endswith('.jpg') or path.endswith('.jpeg'):
+        return __load_jpg(path)
     
 def load_batch_datapoints(paths: Union[str, np.ndarray]):
     arrs = []

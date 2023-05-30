@@ -70,13 +70,13 @@ class Aqdata(Dataset):
             self.noise_model = DissentingLabelNoise(self.n_classes, self.noise_rate)
         elif self.noise_type == 'asymmetric':
             self.noise_model = AsymmetricNoise(self.n_classes, self.noise_rate)
-        elif self.noise_type == 'class_dependent':
+        elif self.noise_type == 'classdependent':
             self.noise_model = ClassDependentNoise(self.n_classes, 
                                                   model=noise_kwargs['model'],
                                                   data=noise_kwargs['data'],
                                                   device=main_config['device'],
                                                   batch_size=noise_kwargs['batch_size'])
-        elif self.noise_type == 'instance_dependent':
+        elif self.noise_type == 'instancedependent':
             self.noise_model = InstanceDependentNoise(self.n_classes,
                                                      noise_rate=self.noise_rate,
                                                      model=noise_kwargs['model'],

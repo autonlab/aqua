@@ -44,6 +44,7 @@ def train_base_model(data_aq: Aqdata,
         return noisy_base_model
 
     # Define a noisy model and train it
+    print(data_configs[dataset]['out_classes'])
     noisy_base_model = model_dict[modality](main_config['architecture'][modality], 
                          output_dim=data_configs[dataset]['out_classes'],
                          **model_configs['base'][architecture])
@@ -255,7 +256,6 @@ def generate_report(timestring=None, file=None, experiment_num=1):
         architecture = main_config['architecture'][modality]
 
         print(42*"=", file=file)
-        print(f"Modality: {modality} | Base Model's Architecture: {architecture} | Dataset: {dataset}", file=file)
         data_results_dict = {}
         data_aq, data_aq_test = getattr(presets, f'load_{dataset}')(data_configs[dataset])
 
@@ -285,9 +285,9 @@ def generate_report(timestring=None, file=None, experiment_num=1):
             if noise == 'no-noise':
                 noise_rate = [0.0]
                 noise_type = 'uniform'
-            elif noise in ['asymmetric', 'uniform', 'instance_dependent']:
+            elif noise in ['asymmetric', 'uniform', 'instancedependent']:
                 noise_rate = main_config['noise_rates']
-            elif noise in ['class_dependent']:
+            elif noise in ['classdependent']:
                 noise_rate = [0.0]
             else:
                 warnings.warn(f'Noise type {noise} not valid', RuntimeWarning)
@@ -298,7 +298,7 @@ def generate_report(timestring=None, file=None, experiment_num=1):
                 noisy_aq_data.noise_type = noise_type
 
                 # TODO : (vedant) : this is a little messy, try to clean this up?
-                if noise_type in ['uniform', 'asymmetric', 'instance_dependent']: noise_name = f"{noise}_{nr}"
+                if noise_type in ['uniform', 'asymmetric', 'instancedependent']: noise_name = f"{noise}-{nr}"
                 else: noise_name = f"{noise}"
 
                 if noise_type in ['uniform', 'asymmetric']: noisy_aq_data.noise_rate = nr
@@ -309,6 +309,8 @@ def generate_report(timestring=None, file=None, experiment_num=1):
 
                 data_results_dict[noise_name]['is_injected_noise'] = noisy_aq_data.noise_or_not
                 data_results_dict[noise_name]['noisy_label'] = noisy_aq_data.labels
+
+                print(f"Modality: {modality} | Base Model's Architecture: {architecture} | Dataset: {dataset} | Noise Type: {noise_name}", file=file)
 
                 for method in main_config['methods']:
                     logging.info(f"Running {method} on dataset {dataset} with a base architecture {architecture}")
@@ -369,5 +371,5 @@ def generate_report(timestring=None, file=None, experiment_num=1):
                 for key, value in data_results_dict.items():
                     data_results_df = pd.DataFrame.from_dict(value)
                     data_results_df['observed_labels'] = data_aq.labels.tolist()
-                    data_results_df.to_csv(os.path.join(main_config['results_dir'], f'results/results_{timestring}/{dataset}_noisename_{key}_label_issues.csv'))
+                    data_results_df.to_csv(os.path.join(main_config['results_dir'], f'results/results_{timestring}/{dataset}_{key}_label_issues.csv'))
 

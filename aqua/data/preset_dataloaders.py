@@ -131,6 +131,18 @@ def __detect_and_process_categorical(df: pd.DataFrame,
     return df
 
 
+def __load_tensorflow_format_dataset(par_path: str):
+    labels, filenames = []
+
+    for label in os.listdir(par_path):
+        label_dir = os.path.join(par_path, label)
+        for files in os.listdir(label_dir):
+            labels.append(label)
+            filenames.append(os.path.join(label_dir, files))
+
+    return labels, filenames
+
+
 #######################  LOAD FUNCTIONS ########################
 def load_cifar10(cfg):
     # Load train data
@@ -335,7 +347,6 @@ def load_compas(cfg):
 
 
 def load_cxr(cfg):
-    import pydicom as dicom
     train_file_dir = cfg['train']['data']
     test_file_dir = cfg['test']['data']
     mappings = os.path.join(cfg['train']['labels'], 'pneumonia-challenge-dataset-mappings_2018.json')
@@ -372,6 +383,19 @@ def load_cxr(cfg):
                                             stratify=labels)
     train_data, train_labels = data[train_inds], labels[train_inds]
     test_data, test_labels = data[test_inds], labels[test_inds]
+
+    return Aqdata(train_data, train_labels, lazy_load=True), Aqdata(test_data, test_labels, lazy_load=True)
+
+
+def clothing100k(cfg):
+    train_file_dir = cfg['train']['data']
+    test_file_dir = cfg['test']['data']
+    
+    train_data, train_labels = __load_tensorflow_format_dataset(train_file_dir)
+    test_data, test_labels = __load_tensorflow_format_dataset(test_file_dir)
+
+    le = preprocessing.LabelEncoder()
+    train_labels, test_labels = le.fit_transform(train_labels), le.fit_transform(test_labels)
 
     return Aqdata(train_data, train_labels, lazy_load=True), Aqdata(test_data, test_labels, lazy_load=True)
 
