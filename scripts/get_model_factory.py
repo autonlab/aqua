@@ -56,8 +56,10 @@ def train_base_model(data_aq: Aqdata,
     train_predictions = noisy_base_model.predict(copy.deepcopy(data_aq))
     test_predictions = noisy_base_model.predict(copy.deepcopy(data_aq_test))
 
-    with open(model_name, 'wb') as f:
-        dump(noisy_base_model.model, f)
+    # Save model
+    if force_reload or not os.path.exists(model_name):
+        with open(model_name, 'wb') as f:
+            dump(noisy_base_model, f)
 
     return train_predictions, test_predictions
 
@@ -93,12 +95,15 @@ def main(force_reload=False):
 
         print(42*"=", "\n\n")
 
-    train_results_df = pd.DataFrame.from_dict(train_results_dict, index=main_config['datasets'])
-    test_results_df = pd.DataFrame.from_dict(test_results_dict, index=main_config['datasets'])
+    train_results_df = pd.DataFrame.from_dict(train_results_dict)
+    test_results_df = pd.DataFrame.from_dict(test_results_dict)
+
+    train_results_df.index = main_config['datasets']
+    test_results_df.index = main_config['datasets']
     
     model_path = os.path.join(main_config['results_dir'], 'model_factory')
-    train_results_df.to_csv(os.path.join(model_path, 'train_results.csv'), index=False)
-    test_results_df.to_csv(os.path.join(model_path, 'test_results.csv'), index=False)
+    train_results_df.to_csv(os.path.join(model_path, 'train_results.csv'))
+    test_results_df.to_csv(os.path.join(model_path, 'test_results.csv'))
         
 
 if __name__ == "__main__":

@@ -41,7 +41,7 @@ def train_base_model(data_aq: Aqdata,
     if os.path.exists(model_name):
         with open(model_name, 'rb') as f:
             noisy_base_model = load(f)
-        return noisy_base_model
+        return noisy_base_model.model
 
     # Define a noisy model and train it
     noisy_base_model = model_dict[modality](main_config['architecture'][modality], 
@@ -57,7 +57,7 @@ def train_base_model(data_aq: Aqdata,
     noisy_base_model.fit_predict(copy.deepcopy(data_aq))
 
     with open(model_name, 'wb') as f:
-        dump(noisy_base_model.model, f)
+        dump(noisy_base_model, f)
 
     return noisy_base_model.model
 
