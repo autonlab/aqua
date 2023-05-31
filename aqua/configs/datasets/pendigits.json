@@ -10,7 +10,7 @@
         "annot_labels" : null
     },
     "test" : {
-        "data" : "/zfsauton/data/public/vsanil/aqua/datasets/UCRArchive_2018/pendigits/PenDigits_TRAIN.ts",
+        "data" : "/zfsauton/data/public/vsanil/aqua/datasets/UCRArchive_2018/pendigits/PenDigits_TEST.ts",
         "labels" : null,
         "annot_labels" : null
     },

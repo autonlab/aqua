@@ -423,11 +423,12 @@ def load_pendigits(cfg):
     train_X = train_X.to_numpy()
     test_X = test_X.to_numpy()
 
-    inp_len = train_X.shape[0]
+    inp_len_train = train_X.shape[0]
+    inp_len_test = test_X.shape[0]
     #train_y = np.hstack([l]*train_X.shape[-1] for l in train_y)
     #test_y = np.hstack([l]*test_X.shape[-1] for l in test_y)
-    train_X = np.stack([np.stack([channel.values for channel in batch], axis=0) for batch in train_X], axis=0).reshape((inp_len, -1))[:, np.newaxis, :].astype(np.float32)
-    test_X = np.stack([np.stack([channel.values for channel in batch], axis=0) for batch in test_X], axis=0).reshape((inp_len, -1))[:, np.newaxis, :].astype(np.float32)
+    train_X = np.stack([np.stack([channel.values for channel in batch], axis=0) for batch in train_X], axis=0).reshape((inp_len_train, -1))[:, np.newaxis, :].astype(np.float32)
+    test_X = np.stack([np.stack([channel.values for channel in batch], axis=0) for batch in test_X], axis=0).reshape((inp_len_test, -1))[:, np.newaxis, :].astype(np.float32)
 
     model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_X.shape[-2]
     model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_X.shape[-1]
