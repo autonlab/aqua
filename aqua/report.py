@@ -44,7 +44,6 @@ def train_base_model(data_aq: Aqdata,
         return noisy_base_model
 
     # Define a noisy model and train it
-    print(data_configs[dataset]['out_classes'])
     noisy_base_model = model_dict[modality](main_config['architecture'][modality], 
                          output_dim=data_configs[dataset]['out_classes'],
                          **model_configs['base'][architecture])
@@ -175,7 +174,7 @@ def run_experiment_2(data_aq: Aqdata,
     label_issues = cleaning_base_model.find_label_issues(copy.deepcopy(data_aq))
 
     if '0.0' not in noise_type:
-        print(f"F1 Score for noise {noise_type}: ", f1_score(label_issues, data_aq.noise_or_not), file=file)
+        print(f"F1 Score for noise {noise_type}: ", f1_score(data_aq.noise_or_not, label_issues), file=file)
     
     # if timestring is not None:
     #     with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/cleaning_model_{method}_noiserate_{noise_type}.pkl'), 'wb') as mf:

@@ -146,7 +146,7 @@ def load_cifar10(cfg):
     logging.info(f"Total number of human annotated label issues: {(labels_annot != label_cifar).sum()}")
     # Load test data
     data_cifar_test, label_cifar_test = __load_cifar10_test(cfg['test']['data'])
-    labels_annot_test = __load_cifar10H_softlabels(cfg['test']['annot_labels'], agreement_threshold=0.9)
+    labels_annot_test = __load_cifar10H_softlabels(cfg['test']['annot_labels'])
 
     return Aqdata(data_cifar, label_cifar, corrected_labels=labels_annot, annotator_labels=annotator_labels), Aqdata(data_cifar_test, label_cifar_test, corrected_labels=labels_annot_test)
     
@@ -381,7 +381,7 @@ def load_cxr(cfg):
     return Aqdata(train_data, train_labels, lazy_load=True), Aqdata(test_data, test_labels, lazy_load=True)
 
 
-def clothing100k(cfg):
+def load_clothing100k(cfg):
     train_file_dir = cfg['train']['data']
     test_file_dir = cfg['test']['data']
     
