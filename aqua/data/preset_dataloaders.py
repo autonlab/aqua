@@ -46,16 +46,9 @@ def __load_cifar10_test(data_path):
     data = data.reshape((data.shape[0], 3, 32, 32))
     return data, labels
 
-def __load_cifar10H_softlabels(label_path, agreement_threshold=0.5):
+def __load_cifar10H_softlabels(label_path):
     # Load Cifar 10 soft labels
-    labels = pd.read_csv(label_path)
-    labels = labels[labels['is_attn_check'] == 0]
-
-    # If more than 50% annotators agree then the true label on cifar 10 is correct else it's incorrect
-    # Here correct_guess == 1 represents that label was guessed correctly
-    anot_1 = pd.pivot_table(labels, values=['correct_guess'], index='cifar10_test_test_idx', aggfunc=lambda x: 1 if x.mean() >= agreement_threshold else 0)
-    anot_1 = anot_1.rename(columns={'correct_guess':'labels'})
-    return anot_1.sort_index().reset_index()['labels'].values
+    return np.load(label_path)
 
 
 def __load_cifar10N_softlabels(label_path):

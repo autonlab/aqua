@@ -22,12 +22,14 @@ class AqModel:
                        dataset,
                        device='cpu',
                        optimizer=None):
+        weighted_loss = data_configs[dataset]['weighted_loss'] if ('weighted_loss' in data_configs[dataset] and data_configs[dataset]['weighted_loss']) else False
         self.model = AqNet(model, 
                            output_dim=data_configs[dataset]['out_classes'],
                            epochs=model_configs['base'][architecture]['epochs'],
                            batch_size=model_configs['base'][architecture]['batch_size'],
                            lr=model_configs['base'][architecture]['batch_size'],
                            lr_drops=model_configs['base'][architecture]['lr_drops'],
+                           weighted_loss=weighted_loss,
                            device=device,
                            optimizer=optimizer)
         self.method = method

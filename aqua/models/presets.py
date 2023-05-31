@@ -17,6 +17,7 @@ class AqNet(BaseEstimator):
                 batch_size=64,
                 lr=0.01,
                 lr_drops = [0.5],
+                weighted_loss = False,
                 device='cpu',
                 optimizer=None):
         
@@ -37,6 +38,7 @@ class AqNet(BaseEstimator):
         self.device = device
         self.lr_drops = lr_drops
         self.output_dim = output_dim
+        self.weighted_loss = weighted_loss
         self.data_loaded_dynamically = False  # Keeps track if data was loaded dynamically during `fit` : required for `predict_proba`
 
         # Push model to device
@@ -137,7 +139,12 @@ class AqNet(BaseEstimator):
                             batch_size=self.batch_size,
                             shuffle=True,
                             num_workers=4)
-        criterion = torch.nn.CrossEntropyLoss()
+        
+        weights = None
+        if self.weighted_loss:
+            weights = 1 - (np.unique(data_aq.labels, return_counts=True)[1]/data_aq.labels.shape[0])
+            weights = torch.from_numpy(weights.astype(np.float32)).to(self.device)
+        criterion = torch.nn.CrossEntropyLoss(weight=weights)
         scheduler = None
 
         if lr_tune:

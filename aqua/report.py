@@ -177,9 +177,9 @@ def run_experiment_2(data_aq: Aqdata,
     if '0.0' not in noise_type:
         print(f"F1 Score for noise {noise_type}: ", f1_score(label_issues, data_aq.noise_or_not), file=file)
     
-    if timestring is not None:
-        with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/cleaning_model_{method}_noiserate_{noise_type}.pkl'), 'wb') as mf:
-            dump(cleaning_base_model, mf)
+    # if timestring is not None:
+    #     with open(os.path.join(main_config['results_dir'], f'results/results_{timestring}/cleaning_model_{method}_noiserate_{noise_type}.pkl'), 'wb') as mf:
+    #         dump(cleaning_base_model, mf)
 
         # TODO : (vedant) save a model base classification model trained on base noisy data
 

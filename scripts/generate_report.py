@@ -84,7 +84,8 @@ def main():
     seed_everything(int(main_config['random_seed']))
 
     timestring = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    timestring = f"{timestring}_randomseed_{main_config['random_seed']}"
+    models = '-'.join(list(set([main_config['architecture'][data_configs[d]['modality']] for d in main_config['datasets']])))
+    timestring = f"{timestring}_randomseed_{main_config['random_seed']}_{models}"
     if not DEBUG:
         if not os.path.exists(os.path.join(main_config['results_dir'], 'results')):
             os.makedirs(os.path.join(main_config['results_dir'], 'results'))

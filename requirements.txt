@@ -19,4 +19,5 @@ wfdb==4.1.0
 datasets==2.11.0
 dill==0.3.6
 numpy>1.22.0
+Pillow==9.0.1
 torchvision

@@ -12,7 +12,7 @@
     "test" : {
         "data" : "/zfsauton/data/public/vsanil/aqua/datasets/cifar-10-batches-py/",
         "labels" : "/zfsauton/data/public/vsanil/aqua/datasets/cifar-10-batches-py/",
-        "annot_labels" : "/zfsauton/data/public/vsanil/aqua/datasets/cifar-10h/data/cifar10h-raw.csv"
+        "annot_labels" : "/zfsauton/data/public/vsanil/aqua/datasets/cifar-10h/data/cifar10h-probs.npy"
     },
     "out_classes" : 10,
     "modality" : "image",
