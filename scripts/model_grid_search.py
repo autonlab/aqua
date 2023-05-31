@@ -104,7 +104,7 @@ def main(force_reload=False):
             train_f1 = f1_score(data_aq.labels, train_preds)
             test_f1 = f1_score(data_aq_test.labels, test_preds)
 
-            model_hp = ";".join([key+"-"+str(value) for key, value in hyperparam_dict.items()])
+            model_hp = ";".join([key+"-"+str(value).replace(",", "") for key, value in hyperparam_dict.items()])
 
             train_results_dict[dataset][model_hp] = train_f1
             test_results_dict[dataset][model_hp] = test_f1
