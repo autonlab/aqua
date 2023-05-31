@@ -1,24 +1,24 @@
 {
     "datasets" : [
-        "compas",
-        "adult",
+        "mushrooms",
         "credit_fraud",
-        ""
+        "dry_bean"
     ],
     "methods" : [
-        "aum",
-        "simifeat",
         "cincer",
-        "cleanlab"
+        "aum",
+        "cleanlab",
+        "simifeat"
     ],
     "noise": [
         "uniform",
+        "classdependent",
+        "instancedependent",
         "asymmetric",
-        "class_dependent",
-        "instance_dependent"
+        "no-noise"
     ],
     "noise_rates" : [0.1, 0.2, 0.4],
-    "device" : "cuda:3",
+    "device" : "cuda:2",
     "architecture" :{
         "image" : "resnet18",
         "text" : "roberta-base",

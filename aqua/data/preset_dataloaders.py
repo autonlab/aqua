@@ -11,6 +11,7 @@ from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from scipy.signal import find_peaks
 from datasets import load_dataset
+from scipy.io import arff
 nltk.download('punkt')
 
 from transformers import AutoTokenizer, RobertaTokenizer
@@ -394,7 +395,28 @@ def clothing100k(cfg):
 
 
 
-def load_duckduckgeese(cfg):
+def load_whalecalls(cfg):
+    train_arr = pd.DataFrame(arff.loadarff(cfg['train']['data'])[0]).values
+    test_arr = pd.DataFrame(arff.loadarff(cfg['test']['data'])[0]).values
+    
+    train_features, train_labels = train_arr[:, :-1], train_arr[:,-1]
+    test_features, test_labels = test_arr[:, :-1], test_arr[:,-1]
+
+    le = preprocessing.LabelEncoder()
+    train_labels = le.fit_transform(train_labels).astype(np.int64)
+    test_labels = le.fit_transform(test_labels).astype(np.int64)
+
+    train_features, train_labels = train_features[:, np.newaxis, :].astype(np.float32), train_labels.astype(np.int64)
+    test_features, test_labels = test_features[:, np.newaxis, :].astype(np.float32), test_labels.astype(np.int64)
+
+    model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
+    model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
+
+
+    return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
+
+
+def load_pendigits(cfg):
     train_X, train_y = load_from_tsfile_to_dataframe(cfg['train']['data'])
     test_X, test_y = load_from_tsfile_to_dataframe(cfg['test']['data'])
     
