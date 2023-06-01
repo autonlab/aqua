@@ -88,7 +88,7 @@ def __preprocess(im_arr, resize=256, crop_size=224):
 
 def __load_dcm(path):
     arr = dicom.dcmread(path).pixel_array
-    return np.repeat(__preprocess(arr.astype(np.float32)), 3, axis=0)
+    return __preprocess(np.repeat(arr.astype(np.float32)[:, :, np.newaxis], 3, axis=2))
 
 def __load_jpg(path):
     arr = np.asarray(Image.open(path))

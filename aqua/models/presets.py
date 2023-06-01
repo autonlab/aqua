@@ -147,11 +147,16 @@ class AqNet(BaseEstimator):
         criterion = torch.nn.CrossEntropyLoss(weight=weights)
         scheduler = None
 
-        if lr_tune:
-            milestones = [int(lr_drop * self.epochs) for lr_drop in (self.lr_drops or [])]
-            scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer,
-                                                            milestones=milestones,
-                                                            gamma=0.1)
+        # if lr_tune:
+        #     milestones = [int(lr_drop * self.epochs) for lr_drop in (self.lr_drops or [])]
+        #     scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer,
+        #                                                     milestones=milestones,
+        #                                                     gamma=0.1)
+        # else:
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
+                                                               patience=10,
+                                                               factor=10)
+
 
         for epoch in range(1, self.epochs+1):
             self.model.train()
@@ -159,6 +164,7 @@ class AqNet(BaseEstimator):
             trainloader = tqdm(loader)
             trainloader.set_description(f"Epoch: {epoch}/{self.epochs}")
             avg_loss, loss_count = 0, 0
+            prev_lr = self.optimizer.param_groups[0]['lr']
             for batch_idx, (data, target, idx, _, data_kwargs) in enumerate(trainloader):
                 loss = self.__train_step(data, target, idx,
                                             data_kwargs,
@@ -174,10 +180,13 @@ class AqNet(BaseEstimator):
 
             if scheduler:
                 scheduler.step()
+                if self.optimizer.param_groups[0]['lr'] < prev_lr:
+                    print("\n\nLR reduced on Plateu\n\n")
                 if early_stop and (scheduler.get_last_lr()[-1] > self.lr):
                     logging.info("Model has early stopped!")
                     break
-
+            
+            prev_lr = self.optimizer.param_groups[0]['lr']
             logging.info("\n\n")
         del scheduler
         del criterion
