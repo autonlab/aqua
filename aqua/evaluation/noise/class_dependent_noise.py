@@ -10,6 +10,8 @@ from sklearn.metrics import confusion_matrix
 from tqdm import tqdm
 import logging
 
+EPS = 1e-7
+
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -66,6 +68,7 @@ class ClassDependentNoise(SyntheticNoise):
         
         for i in range(N): # Can probably be made efficient
             probs = sampling_probabilities[i,:].astype('float64')
+            probs += EPS
             probs /= np.sum(probs)
             noisy_y[i] = np.argmax(np.random.multinomial(n=1, pvals=probs, size=1))
         
