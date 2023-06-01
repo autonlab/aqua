@@ -1,9 +1,9 @@
 {
     "resnet18": {
-        "lr": [0.01, 0.005],
+        "lr": [0.1, 0.01, 0.005],
         "weight_decay": [1e-4, 1e-5],
         "momentum": [0.8, 0.9],
-        "batch_size": [64]
+        "batch_size": [64, 128]
     },
     "resnet34": {
         "lr": [0.01, 0.005],
@@ -15,31 +15,29 @@
         "lr": [0.01, 0.005],
         "weight_decay": [1e-4, 1e-5],
         "momentum": [0.8, 0.9],
-        "batch_size": [64]
+        "batch_size": [32]
     },
     "roberta-base": {
-        "lr": [1e-5, 3e-5],
-        "batch_size": [16, 32]
+        "lr": [1e-5],
+        "batch_size": [32]
     },
     "xlnet-base-cased": {
         "lr": [1e-5, 3e-5],
         "batch_size": [32, 48]
     },
     "resnet1d": {
-        "lr": [0.01, 0.005, 0.001],
+        "lr": [0.005, 0.01],
         "batch_size": [64, 128],
-        "n_feature_maps": [32, 64, 128]
+        "epochs": [5, 10]
     },
     "fcn": {
-        "lr": [0.01],
-        "batch_size": [64],
-        "units": [[128, 64]],
-        "kernel_sizes": [[8, 5, 3]]
+        "lr": [0.005, 0.01],
+        "batch_size": [64, 128]
     },
     "mlp": {
-        "batch_size": [128],
-        "lr": [0.005],
-        "p": [0.3]
+        "lr": [0.001, 0.005],
+        "p": [0, 0.1, 0.2],
+        "epochs": [15, 30]
     },
     "aum": {
         "alpha": [0.01, 0.05, 0.1, 0.15, 0.2]

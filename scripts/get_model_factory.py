@@ -86,8 +86,8 @@ def main(force_reload=False):
                                                     device=main_config['device'],
                                                     force_reload=force_reload)
         
-        train_metrics = get_metrics(train_preds, data_aq.labels)
-        test_metrics = get_metrics(test_preds, data_aq_test.labels)
+        train_metrics = get_metrics(data_aq.labels, train_preds)
+        test_metrics = get_metrics(data_aq_test.labels, test_preds)
 
         for idx, m in enumerate(SUPPORTED_METRICS):
             train_results_dict[m].append(train_metrics[idx])
