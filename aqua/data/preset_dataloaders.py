@@ -467,7 +467,7 @@ def load_whalecalls(cfg):
     model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
     model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
 
-    train_X, test_X = __channelwise_minmax_scaler(train_X, test_X)
+    train_features, test_features = __channelwise_minmax_scaler(train_features, test_features)
 
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
@@ -532,7 +532,7 @@ def load_crop(cfg):
     model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
     model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
     
-    train_X, test_X = __channelwise_minmax_scaler(train_X, test_X)
+    train_features, test_features = __channelwise_minmax_scaler(train_features, test_features)
 
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
@@ -566,7 +566,7 @@ def load_electricdevices(cfg):
     model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
     model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
     
-    train_X, test_X = __channelwise_minmax_scaler(train_X, test_X)
+    train_features, test_features = __channelwise_minmax_scaler(train_features, test_features)
 
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
