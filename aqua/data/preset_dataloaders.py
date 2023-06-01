@@ -18,6 +18,7 @@ nltk.download('punkt')
 from transformers import AutoTokenizer, RobertaTokenizer
 
 from aqua.data.process_data import Aqdata, TestAqdata
+from aqua.utils import load_single_datapoint
 from aqua.configs import main_config, model_configs, data_configs
 
 # Loads CIFAR 10 train
@@ -127,7 +128,7 @@ def __detect_and_process_categorical(df: pd.DataFrame,
 
 
 def __load_tensorflow_format_dataset(par_path: str):
-    labels, filenames = []
+    labels, filenames = [], []
 
     for label in os.listdir(par_path):
         label_dir = os.path.join(par_path, label)
@@ -135,7 +136,7 @@ def __load_tensorflow_format_dataset(par_path: str):
             labels.append(label)
             filenames.append(os.path.join(label_dir, files))
 
-    return labels, filenames
+    return np.array(filenames), np.array(labels)
 
 
 def __channelwise_minmax_scaler(X_train, X_test):
@@ -339,6 +340,9 @@ def load_car_evaluation(cfg):
     train_features = scaler.transform(train_features)
     test_features = scaler.transform(test_features)
 
+    model_configs['base'][main_config['architecture']['tabular']]['epochs'] = 200
+    model_configs['base'][main_config['architecture']['tabular']]['layers'] = [10]
+
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
 
@@ -403,28 +407,46 @@ def load_cxr(cfg):
         mapping_dict = json.load(f)
 
     data, labels = [], []
-    for item in mapping_dict:
-        if os.path.exists(os.path.join(train_file_dir, item['subset_img_id']+'.dcm')):
-            filepath = os.path.join(train_file_dir, item['subset_img_id']+'.dcm')
-        elif os.path.exists(os.path.join(test_file_dir, item['subset_img_id']+'.dcm')):
-            filepath = os.path.join(test_file_dir, item['subset_img_id']+'.dcm')
-        else:
-            continue
-        #ds = np.repeat(dicom.dcmread(filepath).pixel_array[np.newaxis, :, :], 3, axis=0)
-        data.append(filepath)
-        orig_label = str(item['orig_labels']).lower()
-        if 'pneumonia' in orig_label:
-            labels.append("Pneumonia")
-        elif "infiltration" in orig_label or "consolidation" in orig_label:
-            labels.append("Consolidation/Infiltration")
-        elif "no finding" in orig_label:
-            labels.append("No Finding")
-        else:
-            labels.append("Other disease")
+    preprocess_data_path = os.path.join(cfg['train']['labels'], 'data.npy')
+    preprocess_label_path = os.path.join(cfg['train']['labels'], 'labels.npy')
 
-    data = np.array(data)
-    le = preprocessing.LabelEncoder()
-    labels = le.fit_transform(labels).astype(np.int64)
+    if not os.path.exists(preprocess_data_path):
+        for item in mapping_dict:
+            if os.path.exists(os.path.join(train_file_dir, item['subset_img_id']+'.dcm')):
+                filepath = os.path.join(train_file_dir, item['subset_img_id']+'.dcm')
+            elif os.path.exists(os.path.join(test_file_dir, item['subset_img_id']+'.dcm')):
+                filepath = os.path.join(test_file_dir, item['subset_img_id']+'.dcm')
+            else:
+                continue
+            #ds = np.repeat(dicom.dcmread(filepath).pixel_array[np.newaxis, :, :], 3, axis=0)
+            data.append(filepath)
+            orig_label = str(item['orig_labels']).lower()
+            if 'pneumonia' in orig_label:
+                labels.append("Pneumonia")
+            elif "infiltration" in orig_label or "consolidation" in orig_label:
+                labels.append("Consolidation/Infiltration")
+            elif "no finding" in orig_label:
+                labels.append("No Finding")
+            else:
+                labels.append("Other disease")
+
+        le = preprocessing.LabelEncoder()
+        labels = le.fit_transform(labels).astype(np.int64)
+
+        im_arrs = []
+        for filename in tqdm(data, desc='CXR'):
+            im_arrs.append(load_single_datapoint(filename)[np.newaxis, :])
+        im_arrs = np.concatenate(im_arrs)
+
+        np.save(preprocess_data_path, im_arrs)
+        np.save(preprocess_label_path, np.array(labels))
+
+        del im_arrs
+
+    # Load data and labels
+    data = np.load(preprocess_data_path)
+    labels = np.load(preprocess_label_path)
+
     train_inds, test_inds = train_test_split(np.arange(data.shape[0]),
                                             test_size=0.15,
                                             random_state=1,
@@ -433,15 +455,24 @@ def load_cxr(cfg):
     train_data, train_labels = data[train_inds], labels[train_inds]
     test_data, test_labels = data[test_inds], labels[test_inds]
 
-    return Aqdata(train_data, train_labels, lazy_load=True), Aqdata(test_data, test_labels, lazy_load=True)
+    return Aqdata(train_data, train_labels), Aqdata(test_data, test_labels)
 
 
 def load_clothing100k(cfg):
     train_file_dir = cfg['train']['data']
     test_file_dir = cfg['test']['data']
+
+    # Define data paths
+    preprocess_traindata_path = os.path.join(os.path.abspath(train_file_dir), 'train_data.npy')
+    preprocess_trainlabel_path = os.path.join(os.path.abspath(train_file_dir), 'train_labels.npy')
+    preprocess_testdata_path = os.path.join(os.path.abspath(train_file_dir), 'test_data.npy')
+    preprocess_testlabel_path = os.path.join(os.path.abspath(train_file_dir), 'test_labels.npy')
     
     train_data, train_labels = __load_tensorflow_format_dataset(train_file_dir)
     test_data, test_labels = __load_tensorflow_format_dataset(test_file_dir)
+    
+
+    #if not os.path.join()
 
     le = preprocessing.LabelEncoder()
     train_labels, test_labels = le.fit_transform(train_labels), le.fit_transform(test_labels)
