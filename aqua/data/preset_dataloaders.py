@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 import nltk
 from sktime.datasets import load_from_tsfile_to_dataframe
 from tqdm import tqdm
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from wfdb import rdrecord, rdann
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
@@ -137,6 +138,19 @@ def __load_tensorflow_format_dataset(par_path: str):
     return labels, filenames
 
 
+def __channelwise_minmax_scaler(X_train, X_test):
+    channels_train, channels_test = [], []
+    for channel_num in range(X_train.shape[1]):
+        channel_tr, channel_te = X_train[:, channel_num, :], X_test[:, channel_num, :]
+        scaler = MinMaxScaler()
+        scaler.fit(channel_tr)
+
+        channels_train.append(scaler.transform(channel_tr)[:, np.newaxis, :])
+        channels_test.append(scaler.transform(channel_te)[:, np.newaxis, :])
+
+    return np.concatenate(channels_train, axis=1), np.concatenate(channels_test, axis=1)
+
+
 #######################  LOAD FUNCTIONS ########################
 def load_cifar10(cfg):
     # Load train data
@@ -211,8 +225,12 @@ def load_mitbih(cfg):
     
     # Convert dtypes
     model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_data.shape[-1]
+    model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_data.shape[-2]
     train_data, train_labels = train_data.astype(np.float32), train_labels.astype(np.int64)
     test_data, test_labels = test_data.astype(np.float32), test_labels.astype(np.int64)
+
+    train_data, test_data = __channelwise_minmax_scaler(train_data, test_data)
+
     return Aqdata(train_data, train_labels), Aqdata(test_data, test_labels)
 
 
@@ -232,6 +250,12 @@ def load_credit_fraud(cfg):
     
     train_features, train_labels = train_features.astype(np.float32), train_labels.astype(np.int64)
     test_features, test_labels = test_features.astype(np.float32), test_labels.astype(np.int64)
+
+    scaler = StandardScaler()
+    scaler.fit(train_features)
+
+    train_features = scaler.transform(train_features)
+    test_features = scaler.transform(test_features)
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
 def load_adult(cfg):
@@ -254,6 +278,12 @@ def load_adult(cfg):
 
     model_configs['base'][main_config['architecture']['tabular']]['input_dim'] = train_features.shape[1]
 
+    scaler = StandardScaler()
+    scaler.fit(train_features)
+
+    train_features = scaler.transform(train_features)
+    test_features = scaler.transform(test_features)
+
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
 
@@ -274,6 +304,13 @@ def load_dry_bean(cfg):
     
     train_features, train_labels = train_features.astype(np.float32), train_labels.astype(np.int64)
     test_features, test_labels = test_features.astype(np.float32), test_labels.astype(np.int64)
+    
+    scaler = StandardScaler()
+    scaler.fit(train_features)
+
+    train_features = scaler.transform(train_features)
+    test_features = scaler.transform(test_features)
+    
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
 
@@ -295,6 +332,12 @@ def load_car_evaluation(cfg):
     train_features, train_labels = train_features.astype(np.float32), train_labels.astype(np.int64)
     test_features, test_labels = test_features.astype(np.float32), test_labels.astype(np.int64)
     model_configs['base'][main_config['architecture']['tabular']]['input_dim'] = train_features.shape[1]
+
+    scaler = StandardScaler()
+    scaler.fit(train_features)
+
+    train_features = scaler.transform(train_features)
+    test_features = scaler.transform(test_features)
 
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
@@ -320,6 +363,12 @@ def load_mushrooms(cfg):
     test_features, test_labels = test_features.astype(np.float32), test_labels.astype(np.int64)
     model_configs['base'][main_config['architecture']['tabular']]['input_dim'] = train_features.shape[1]
 
+    scaler = StandardScaler()
+    scaler.fit(train_features)
+
+    train_features = scaler.transform(train_features)
+    test_features = scaler.transform(test_features)
+
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
 def load_compas(cfg):
@@ -336,6 +385,12 @@ def load_compas(cfg):
     train_features, train_labels = train_features.astype(np.float32), train_labels.astype(np.int64)
     test_features, test_labels = test_features.astype(np.float32), test_labels.astype(np.int64)
     model_configs['base'][main_config['architecture']['tabular']]['input_dim'] = train_features.shape[1]
+
+    scaler = StandardScaler()
+    scaler.fit(train_features)
+
+    train_features = scaler.transform(train_features)
+    test_features = scaler.transform(test_features)
 
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
@@ -412,6 +467,7 @@ def load_whalecalls(cfg):
     model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
     model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
 
+    train_X, test_X = __channelwise_minmax_scaler(train_X, test_X)
 
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
@@ -436,6 +492,8 @@ def load_pendigits(cfg):
     le = preprocessing.LabelEncoder()
     train_y = le.fit_transform(train_y).astype(np.int64)
     test_y = le.fit_transform(test_y).astype(np.int64)
+
+    train_X, test_X = __channelwise_minmax_scaler(train_X, test_X)
 
     return Aqdata(train_X, train_y), Aqdata(test_X, test_y)
 
@@ -474,6 +532,8 @@ def load_crop(cfg):
     model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
     model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
     
+    train_X, test_X = __channelwise_minmax_scaler(train_X, test_X)
+
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
 
@@ -506,6 +566,8 @@ def load_electricdevices(cfg):
     model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
     model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
     
+    train_X, test_X = __channelwise_minmax_scaler(train_X, test_X)
+
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
 
