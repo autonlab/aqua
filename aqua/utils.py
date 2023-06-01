@@ -4,6 +4,8 @@ import torch
 import pydicom as dicom
 from PIL import Image
 from typing import Union
+from torchvision.transforms import Resize, CenterCrop, Normalize
+from torchvision.transforms.functional import to_tensor
 
 from aqua.configs import model_configs, data_configs, main_config
 
@@ -80,17 +82,17 @@ def get_available_gpus():
     return avail_gpus
 
 ###################### DATA LOADING UTILS ####################
+def __preprocess(im_arr, resize=256, crop_size=224):
+    transforms = torch.nn.Sequential(Resize(resize), CenterCrop(crop_size), Normalize((0.485, 0.456, 0.406),(0.229, 0.224, 0.225)))
+    return transforms(to_tensor(im_arr)).numpy()
+
 def __load_dcm(path):
-    arr = np.repeat(dicom.dcmread(path).pixel_array[np.newaxis, :, :], 3, axis=0)
-    arr = (arr - arr.min())/(arr.max() - arr.min())
-    #arr -= [0.485, 0.456, 0.406]
-    #arr /= [0.299, 0.224, 0.225]
-    return arr.astype(np.float32)
+    arr = dicom.dcmread(path).pixel_array
+    return np.repeat(__preprocess(arr.astype(np.float32)), 3, axis=0)
 
 def __load_jpg(path):
     arr = np.asarray(Image.open(path))
-    arr = (arr - arr.min())/(arr.max() - arr.min())
-    return arr.astype(np.float32)
+    return __preprocess(arr.astype(np.float32))
 
 def load_single_datapoint(path: str):
     if path.endswith('.dcm'):
