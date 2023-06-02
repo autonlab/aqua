@@ -48,10 +48,10 @@ class Aqdata(Dataset):
         self.data, self.labels = self.add_noise(self.data, self.labels, noise_kwargs)
 
     def clean_data(self, label_issues):
-        self.data = self.data[~label_issues]
-        self.labels = self.labels[~label_issues]
+        self.data = self.data[label_issues == 0]
+        self.labels = self.labels[label_issues == 0]
         if self.attention_masks is not None: 
-            self.attention_masks = self.attention_masks[~label_issues]
+            self.attention_masks = self.attention_masks[label_issues == 0]
 
     def set_inds(self, inds):
         self.data = self.data[inds]
