@@ -300,8 +300,13 @@ def generate_report(timestring=None, file=None, experiment_num=1):
                 if noise_type in ['uniform', 'asymmetric', 'instancedependent']: noise_name = f"{noise}-{nr}"
                 else: noise_name = f"{noise}"
 
-                if noise_type in ['uniform', 'asymmetric']: noisy_aq_data.noise_rate = nr
-                else: noisy_aq_data.noise_rate = [nr, noise_kwargs]
+                try:
+                    if noise_type in ['uniform', 'asymmetric']: noisy_aq_data.noise_rate = nr
+                    else: noisy_aq_data.noise_rate = [nr, noise_kwargs]
+                except Exception:
+                    logging.info(f"Adding {noise_name} to dataset {dataset} failed to run. Stack trace:")
+                    logging.exception("Exception")
+                    continue
 
                 if noise_name not in data_results_dict:
                     data_results_dict[noise_name] = {}
