@@ -80,6 +80,7 @@ class Aqdata(Dataset):
             self.noise_model = InstanceDependentNoise(self.n_classes,
                                                      noise_rate=self.noise_rate,
                                                      model=noise_kwargs['model'],
+                                                     data=noise_kwargs['data'],
                                                      device=main_config['device'],
                                                      batch_size=noise_kwargs['batch_size'])
         else:
@@ -112,6 +113,7 @@ class Aqdata(Dataset):
         misc_kwargs = {}
         if self.attention_masks is not None: misc_kwargs['attention_mask'] = self.attention_masks[idx]
         return_args.append(misc_kwargs)       
+
         return tuple(return_args)
         
 

@@ -69,7 +69,7 @@ class InstanceDependentNoise(SyntheticNoise):
         # Send model to device
         model = model.to(self.device)
         with torch.no_grad():
-            for data in tqdm(dataloader, desc='Instance Dependent Noise:'):
+            for (data, _, _, _, _) in tqdm(dataloader, desc='Instance Dependent Noise:'):
                 data = data.to(self.device)
                 _, feats = model(data, return_feats=True)
                 x_feats.append(feats.detach().cpu().numpy())
