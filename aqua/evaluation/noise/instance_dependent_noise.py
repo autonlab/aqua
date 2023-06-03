@@ -11,6 +11,7 @@ class InstanceDependentNoise(SyntheticNoise):
     def __init__(self, n_classes:int=2, 
                  noise_rate:float=0.2, 
                  model=None,
+                 data=None,
                  device:str ='cpu',
                  batch_size: int = 32,
                  **kwargs):
@@ -18,6 +19,7 @@ class InstanceDependentNoise(SyntheticNoise):
         self.n_classes = n_classes
         self.p = noise_rate
         self.model = model
+        self.data = data
         self.device = device
         self.batch_size = batch_size
 
@@ -25,7 +27,7 @@ class InstanceDependentNoise(SyntheticNoise):
         if y.squeeze().ndim != 1:
             y = np.argmax(y, axis=1) # In case the inputs are one hot already
 
-        featurized_X = self.get_featurized_dataset(X) # TODO
+        featurized_X = self.get_featurized_dataset() # TODO
         self.N, self.S = featurized_X.shape # Number of data points and features
 
         # Sample instance flip rates qn from the truncated normal distribution
@@ -52,13 +54,13 @@ class InstanceDependentNoise(SyntheticNoise):
 
         return X, noisy_y
 
-    def get_featurized_dataset(self, X:np.ndarray):
+    def get_featurized_dataset(self):
         # Featurize the dataset using trained model
         model = self.model.model
         model.eval()
-        X = torch.from_numpy(X).to(self.device)
+        #X = torch.from_numpy(X).to(self.device)
 
-        dataloader = DataLoader(X, 
+        dataloader = DataLoader(self.data, 
                                 batch_size=self.batch_size, 
                                 shuffle=False, 
                                 num_workers=0)

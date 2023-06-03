@@ -153,9 +153,11 @@ class AqNet(BaseEstimator):
         #                                                     milestones=milestones,
         #                                                     gamma=0.1)
         # else:
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
-                                                               patience=10,
-                                                               factor=10)
+
+        # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
+        #                                                        patience=3,
+        #                                                        factor=0.1,
+        #                                                        min_lr=1e-6)
 
 
         for epoch in range(1, self.epochs+1):
@@ -179,12 +181,12 @@ class AqNet(BaseEstimator):
                     logging.info(f"Epoch: {epoch}, Batch: {batch_idx}, Avg Loss: {res['loss']}")
 
             if scheduler:
-                scheduler.step()
+                scheduler.step(avg_loss/loss_count)
                 if self.optimizer.param_groups[0]['lr'] < prev_lr:
                     print("\n\nLR reduced on Plateu\n\n")
-                if early_stop and (scheduler.get_last_lr()[-1] > self.lr):
-                    logging.info("Model has early stopped!")
-                    break
+                # if early_stop and (scheduler.get_last_lr()[-1] > self.lr):
+                #     logging.info("Model has early stopped!")
+                #     break
             
             prev_lr = self.optimizer.param_groups[0]['lr']
             logging.info("\n\n")
