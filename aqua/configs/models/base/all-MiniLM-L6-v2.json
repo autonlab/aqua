@@ -1,0 +1,6 @@
+{
+    "epochs": 3,
+    "batch_size": 64,
+    "lr":1e-4,
+    "lr_drops":[]
+}

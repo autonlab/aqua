@@ -21,6 +21,8 @@ from aqua.data.process_data import Aqdata, TestAqdata
 from aqua.utils import load_single_datapoint
 from aqua.configs import main_config, model_configs, data_configs
 
+SENTENCE_TRANSFORMERS = ["all-distilroberta-v1", "all-MiniLM-L6-v2"]
+
 # Loads CIFAR 10 train
 def __load_cifar10_train(data_path):
     data, labels = [], []
@@ -167,7 +169,10 @@ def load_cifar10(cfg):
     
 
 def load_imdb(cfg):
-    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'])
+    modelname = main_config['architecture']['text']
+    if modelname in SENTENCE_TRANSFORMERS:
+        modelname = f"sentence-transformers/{modelname}"
+    tokenizer = AutoTokenizer.from_pretrained(modelname)
     # Load train data
     csv_path = os.path.join(cfg['train']['data'], 'train_csv.csv')
     if not os.path.exists(csv_path):
@@ -195,6 +200,8 @@ def load_imdb(cfg):
 
     train_tokens, train_attention_masks, train_labels = train_tokens.astype(np.int64), train_attention_masks.astype(np.int64), train_labels.astype(np.int64)
     test_tokens, test_attention_masks, test_labels = test_tokens.astype(np.int64), test_attention_masks.astype(np.int64), test_labels.astype(np.int64)
+
+    #model_configs['base'][main_config['architecture']['text']]['epochs'] = 1
 
     return Aqdata(train_tokens, train_labels, attention_mask=train_attention_masks), Aqdata(test_tokens, test_labels, attention_mask=test_attention_masks)
 
@@ -230,7 +237,7 @@ def load_mitbih(cfg):
     train_data, train_labels = train_data.astype(np.float32), train_labels.astype(np.int64)
     test_data, test_labels = test_data.astype(np.float32), test_labels.astype(np.int64)
 
-    train_data, test_data = __channelwise_minmax_scaler(train_data, test_data)
+    #train_data, test_data = __channelwise_minmax_scaler(train_data, test_data)
 
     return Aqdata(train_data, train_labels), Aqdata(test_data, test_labels)
 
@@ -537,7 +544,7 @@ def load_whalecalls(cfg):
     model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
     model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
 
-    train_features, test_features = __channelwise_minmax_scaler(train_features, test_features)
+    #train_features, test_features = __channelwise_minmax_scaler(train_features, test_features)
 
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
@@ -563,7 +570,7 @@ def load_pendigits(cfg):
     train_y = le.fit_transform(train_y).astype(np.int64)
     test_y = le.fit_transform(test_y).astype(np.int64)
 
-    train_X, test_X = __channelwise_minmax_scaler(train_X, test_X)
+    #train_X, test_X = __channelwise_minmax_scaler(train_X, test_X)
 
     return Aqdata(train_X, train_y), Aqdata(test_X, test_y)
 
@@ -602,7 +609,7 @@ def load_crop(cfg):
     model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
     model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
     
-    train_features, test_features = __channelwise_minmax_scaler(train_features, test_features)
+    #train_features, test_features = __channelwise_minmax_scaler(train_features, test_features)
 
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
@@ -636,13 +643,17 @@ def load_electricdevices(cfg):
     model_configs['base'][main_config['architecture']['timeseries']]['in_channels'] = train_features.shape[-2]
     model_configs['base'][main_config['architecture']['timeseries']]['input_length'] = train_features.shape[-1]
     
-    train_features, test_features = __channelwise_minmax_scaler(train_features, test_features)
+    #train_features, test_features = __channelwise_minmax_scaler(train_features, test_features)
 
     return Aqdata(train_features, train_labels), Aqdata(test_features, test_labels)
 
 
 def load_tweeteval(cfg):
-    tokenizer = AutoTokenizer.from_pretrained(main_config['architecture']['text'], model_max_length=514)
+    modelname = main_config['architecture']['text']
+    if modelname in SENTENCE_TRANSFORMERS:
+        modelname = f"sentence-transformers/{modelname}"
+    tokenizer = AutoTokenizer.from_pretrained(modelname)
+    tokenizer = AutoTokenizer.from_pretrained(modelname)
     data_load = load_dataset(path=os.path.join(cfg["train"]["data"], 'tweet_eval.py'), name=cfg['type'], cache_dir=cfg["train"]["data"]) # Downloads the dataset if it already doesnt exist
     train_data, test_data = data_load['train'], data_load['test']
     train_data, test_data = [batch for batch in train_data], [batch for batch in test_data]
