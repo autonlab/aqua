@@ -154,10 +154,10 @@ class AqNet(BaseEstimator):
         #                                                     gamma=0.1)
         # else:
 
-        # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
-        #                                                        patience=3,
-        #                                                        factor=0.1,
-        #                                                        min_lr=1e-6)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
+                                                               patience=4,
+                                                               factor=0.1,
+                                                               min_lr=1e-6)
 
 
         for epoch in range(1, self.epochs+1):

@@ -14,9 +14,10 @@
         "labels" : "/zfsauton/data/public/vsanil/aqua/datasets/cxr/",
         "annot_labels" : null
     },
-    "out_classes" : 4,
+    "out_classes" : 2,
     "modality" : "image",
     "noise_type" : null,
     "noise_rate" : 0.0,
-    "force_reload" : false
+    "force_reload" : false,
+    "weighted_loss": true
 }

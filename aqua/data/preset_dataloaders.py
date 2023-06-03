@@ -403,12 +403,39 @@ def load_cxr(cfg):
     train_file_dir = cfg['train']['data']
     test_file_dir = cfg['test']['data']
     mappings = os.path.join(cfg['train']['labels'], 'pneumonia-challenge-dataset-mappings_2018.json')
+    data_df = pd.read_csv(os.path.join(cfg['train']['labels'], 'RSNA_pneumonia_all_probs.csv'))
     with open(mappings) as f:
         mapping_dict = json.load(f)
 
     data, labels = [], []
     preprocess_data_path = os.path.join(cfg['train']['labels'], 'data.npy')
     preprocess_label_path = os.path.join(cfg['train']['labels'], 'labels.npy')
+
+    if not os.path.exists(preprocess_label_path):
+        for item in tqdm(mapping_dict, desc="CXR Labels"):
+            if os.path.exists(os.path.join(train_file_dir, item['subset_img_id']+'.dcm')):
+                filepath = os.path.join(train_file_dir, item['subset_img_id']+'.dcm')
+            elif os.path.exists(os.path.join(test_file_dir, item['subset_img_id']+'.dcm')):
+                filepath = os.path.join(test_file_dir, item['subset_img_id']+'.dcm')
+            else:
+                continue
+            orig_label = str(item['orig_labels']).lower()
+            if 'pneumonia' in orig_label:
+                labels.append(1)
+            elif "infiltration" in orig_label or "consolidation" in orig_label:
+                row_df = data_df[(data_df['SeriesInstanceUID'] == item['SeriesInstanceUID']) & (data_df['SOPInstanceUID'] == item['SOPInstanceUID']) & (data_df['StudyInstanceUID'] == item['StudyInstanceUID'])]
+                if 'Lung Opacity (High Prob)' in row_df['labelName'].values.tolist():
+                    labels.append(1)
+                else:
+                    labels.append(0)
+            elif "no finding" in orig_label:
+                labels.append(0)
+            else:
+                labels.append(0)
+
+        le = preprocessing.LabelEncoder()
+        labels = le.fit_transform(labels).astype(np.int64)
+        np.save(preprocess_label_path, np.array(labels))
 
     if not os.path.exists(preprocess_data_path):
         for item in mapping_dict:
@@ -420,18 +447,6 @@ def load_cxr(cfg):
                 continue
             #ds = np.repeat(dicom.dcmread(filepath).pixel_array[np.newaxis, :, :], 3, axis=0)
             data.append(filepath)
-            orig_label = str(item['orig_labels']).lower()
-            if 'pneumonia' in orig_label:
-                labels.append("Pneumonia")
-            elif "infiltration" in orig_label or "consolidation" in orig_label:
-                labels.append("Consolidation/Infiltration")
-            elif "no finding" in orig_label:
-                labels.append("No Finding")
-            else:
-                labels.append("Other disease")
-
-        le = preprocessing.LabelEncoder()
-        labels = le.fit_transform(labels).astype(np.int64)
 
         im_arrs = []
         for filename in tqdm(data, desc='CXR'):
@@ -439,7 +454,6 @@ def load_cxr(cfg):
         im_arrs = np.concatenate(im_arrs)
 
         np.save(preprocess_data_path, im_arrs)
-        np.save(preprocess_label_path, np.array(labels))
 
         del im_arrs
 
