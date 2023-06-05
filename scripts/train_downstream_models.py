@@ -93,11 +93,14 @@ def get_results_dict():
             re_file = re.match(FILE_PATTERN, filename)
             if not re_file:
                 continue
+    
             dataset = re_file.group("dataset")
             noise_type = re_file.group("noisetype")
             if dataset not in results_dict:
                 results_dict[dataset] = dict()
             if base_model not in results_dict[dataset]:
+                if base_model == 'mobilenet-v2':
+                    base_model = 'mobilenet_v2'
                 results_dict[dataset][base_model] = dict()
             if noise_type not in results_dict[dataset][base_model]:
                 results_dict[dataset][base_model][noise_type] = dict()
@@ -124,6 +127,8 @@ def main(base_dir, force_retrain=False, train_original=False):
     for dataset in main_config['datasets']:
         modality = data_configs[dataset]['modality']
         architecture = main_config['architecture'][modality]
+        if 'mobilenet-v2' in architecture:
+            architecture = 'mobilenet_v2'
         for noise in main_config['noise']:
             for noise_rate in main_config['noise_rates']:
                 noise_type = f"{noise}-{noise_rate}" if (noise != "classdependent") else noise

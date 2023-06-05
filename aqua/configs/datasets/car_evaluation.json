@@ -17,6 +17,5 @@
     "out_classes" : 4,
     "modality" : "tabular",
     "noise_type" : null,
-    "noise_rate" : 0.0,
-    "weighted_loss": true
+    "noise_rate" : 0.0
 }

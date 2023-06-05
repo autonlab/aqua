@@ -1,6 +1,6 @@
 {
     "datasets" : [
-        "imdb"
+        "car_evaluation"
     ],
     "methods" : [
         "cincer",
@@ -10,21 +10,20 @@
     ],
     "noise": [
         "uniform",
-        "classdependent",
         "instancedependent",
-        "asymmetric",
-        "no-noise"
+        "classdependent",
+        "asymmetric"
     ],
     "noise_rates" : [0.1, 0.4],
-    "device" : "cuda:7",
+    "device" : "cuda:3",
     "architecture" :{
         "image" : "mobilenet_v2",
-        "text" : "all-distilroberta-v1",
+        "text" : "roberta-base",
         "timeseries": "fcn", 
         "tabular": "mlp"
     },
     "random_seed": 42,
-    "results_dir": "/home/scratch/arvindsr/labelerrors",
+    "results_dir": "/home/scratch/vsanil/aqua",
     "debug": false,
     "experiment": 2,
     "grid_search": false

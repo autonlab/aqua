@@ -27,10 +27,10 @@ class AUM:
         aum_results_filepath = os.path.join(main_config['results_dir'], f'results/aum_values_{iter}.csv')
         shutil.move(os.path.join(main_config['results_dir'], 'results/aum_values.csv'), aum_results_filepath)
         aum_file = pd.read_csv(aum_results_filepath)
-        aum_tensor = torch.tensor(aum_file["aum"].to_list())
-        aum_wtr = torch.lt(aum_tensor.view(-1, 1),
-                           aum_tensor[thr_inds].view(1, -1),
-                           ).float().mean(dim=-1).gt(0.01).float()
+        # aum_tensor = torch.tensor(aum_file["aum"].to_list())
+        # aum_wtr = torch.lt(aum_tensor.view(-1, 1),
+        #                    aum_tensor[thr_inds].view(1, -1),
+        #                    ).float().mean(dim=-1).gt(0.01).float()
 
         thresh = np.percentile(aum_file.iloc[thr_inds]['aum'].values, self.alpha*100)
         mask = np.array([True]*aum_file.shape[0])  # Selects train indices only, discards THR indices
