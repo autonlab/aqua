@@ -1,5 +1,27 @@
-# AQuA: Annotation Quality Assessment 
-## Identifying Labeling Errors
+<h1 align="center">AQuA: A Benchmarking Tool for Label Quality Assessment</h1>
+<h3 align="center">A benchmarking environment to rigorously evaluate methods that enable machine learning in the presence of label noise</h3>
+
+Machine learning (ML) models are only as good as the data they are trained on. But recent studies have found datasets widely used to train and evaluate ML models, e.g. _ImageNet_, to have pervasive labeling errors. Erroneous labels on the train set hurt ML models' ability to generalize, and they impact evaluation and model selection using the test set. Consequently, learning in the presence of labeling errors is an active area of research, yet this field lacks a comprehensive benchmark to evaluate these methods. Most of these methods are evaluated on a few computer vision datasets with significant variance in the experimental protocols. With such a large pool of methods and inconsistent evaluation, it is also unclear how ML practitioners can choose the right models to assess label quality in their data. To this end, we propose a benchmarking environment `AQuA` to rigorously evaluate methods that enable machine learning in the presence of label noise. We also introduce a design space to delineate concrete design choices of label error detection models. We hope that our proposed design space and benchmark enable practitioners to choose the right tools to improve their label quality and that our benchmark enables objective and rigorous evaluation of machine learning tools facing mislabeled data.
+
+<p align="center">
+<img height ="300px" src="assets/overview.png">
+</p>
+
+Figure 1: *The Model Selection Workflow.* We identify three classes of surrogate metrics of model quality, and propose a novel robust rank aggregation framework to combine multiple rankings from metrics. 
+
+If you use this code, please consider citing our work: 
+> [AQuA: A Benchmarking Tool for Label Quality Assessment]()\
+Mononito Goswami, Vedant Sanil, Arjun Choudhry, Chalisa Udompanyawit, Artur Dubrawski\
+ArXiv Preprint, 2023\
+
+----
+
+## Contents
+
+1. [Datasets](#datasets)
+2. [Installation](#installation)
+3. [Citation](#citation)
+4. [License](#license)
 
 ### List of supported datasets
 * Text
