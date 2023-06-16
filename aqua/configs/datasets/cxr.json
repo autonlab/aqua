@@ -18,6 +18,5 @@
     "modality" : "image",
     "noise_type" : null,
     "noise_rate" : 0.0,
-    "force_reload" : false,
-    "weighted_loss": true
+    "force_reload" : false
 }

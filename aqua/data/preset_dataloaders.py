@@ -1,3 +1,25 @@
+# MIT License
+
+# Copyright (c) 2023 Carnegie Mellon University, Auton Lab
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import os, pickle, json, logging
 import numpy as np
 import pandas as pd
@@ -491,34 +513,6 @@ def load_clothing100k(cfg):
     
     train_data, train_labels = __load_tensorflow_format_dataset(train_file_dir)
     test_data, test_labels = __load_tensorflow_format_dataset(test_file_dir)
-
-    # if not os.path.exists(preprocess_traindata_path):
-
-    #     train_im_arrs, test_im_arrs = [], []
-    #     for filename in tqdm(train_data, desc='Train Clothing100k'):
-    #         try:
-    #             train_im_arrs.append(load_single_datapoint(filename)[np.newaxis, :])
-    #         except:
-    #             continue
-    #     train_im_arrs = np.concatenate(train_im_arrs)
-
-    #     np.save(preprocess_traindata_path, train_im_arrs)
-    #     np.save(preprocess_trainlabel_path, np.array(train_labels))
-    #     del train_im_arrs
-
-    #     for filename in tqdm(test_data, desc='Test Clothing100k'):
-    #         try:
-    #             test_im_arrs.append(load_single_datapoint(filename)[np.newaxis, :])
-    #         except:
-    #             continue
-    #     test_im_arrs = np.concatenate(test_im_arrs)
-
-    #     np.save(preprocess_testdata_path, test_im_arrs)
-    #     np.save(preprocess_testlabel_path, np.array(test_labels))
-    #     del test_im_arrs
-
-    #train_data, train_labels = np.load(preprocess_traindata_path), np.load(preprocess_trainlabel_path)
-    #test_data, test_labels = np.load(preprocess_testdata_path), np.load(preprocess_testlabel_path)
     
     le = preprocessing.LabelEncoder()
     train_labels, test_labels = le.fit_transform(train_labels), le.fit_transform(test_labels)

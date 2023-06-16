@@ -1,3 +1,25 @@
+# MIT License
+
+# Copyright (c) 2023 Carnegie Mellon University, Auton Lab
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import sys, os, warnings, torch, numpy as np, argparse, pandas as pd, json, copy
 sys.path.append('../')
 warnings.filterwarnings("ignore")
@@ -28,6 +50,8 @@ model_dict = {
 }
 
 def get_datacard(results_dict, dataset, architecture, noise_type, random_seed):
+    import pdb
+    pdb.set_trace()
     if dataset in results_dict:
         if architecture in results_dict[dataset]:
             if noise_type in results_dict[dataset][architecture]:
@@ -74,6 +98,7 @@ def train_base_model(data_aq: Aqdata,
     return test_predictions
 
 def get_results_dict():
+    import pdb
     BASE_PATH = "/zfsauton/data/public/vsanil/aqua_results"
 
     FOLDER_PATTERN = "results_(?P<timestamp>.*)_randomseed_(?P<randomseed>.*)_(?P<basemodel>.*)"
@@ -107,8 +132,12 @@ def get_results_dict():
             if random_seed not in results_dict[dataset][base_model][noise_type]:
                 results_dict[dataset][base_model][noise_type][random_seed] = dict()
             data_path = os.path.join(result_dir_path, filename)
+            if dataset == 'clothing100k' and base_model == 'mobilenet_v2':
+                print(noise_type)
+                pdb.set_trace()
             results_dict[dataset][base_model][noise_type][random_seed]["datacard"] = pd.read_csv(data_path, index_col=0)
 
+    pdb.set_trace()
     return results_dict
 
 def main(base_dir, force_retrain=False, train_original=False):
@@ -127,8 +156,6 @@ def main(base_dir, force_retrain=False, train_original=False):
     for dataset in main_config['datasets']:
         modality = data_configs[dataset]['modality']
         architecture = main_config['architecture'][modality]
-        if 'mobilenet-v2' in architecture:
-            architecture = 'mobilenet_v2'
         for noise in main_config['noise']:
             for noise_rate in main_config['noise_rates']:
                 noise_type = f"{noise}-{noise_rate}" if (noise != "classdependent") else noise
