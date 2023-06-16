@@ -10,7 +10,7 @@ Machine learning (ML) models are only as good as the data they are trained on. B
 Figure 1: _Overview of the `AQuA` benchmark framework_. `AQuA` comprises of datasets from **4** modalities, **4** single-label and **3** multi-annotator label noise injection methods, **4** state-of-the-art label error detection models, classification models, and several evaluation metrics beyond metrics of predictive accuracy. We are in the process of integrating several fairness, generalization, and robustness metrics into `AQuA`. The red and blue arrows show two example experimental pipelines for image data and time-series data, respectively. 
 
 If you use this code, please consider citing our work: 
-> [AQuA: A Benchmarking Tool for Label Quality Assessment]()\
+> [AQuA: A Benchmarking Tool for Label Quality Assessment]()
 Mononito Goswami, Vedant Sanil, Arjun Choudhry, Chalisa Udompanyawit, Artur Dubrawski\
 ArXiv Preprint, 2023\
 
