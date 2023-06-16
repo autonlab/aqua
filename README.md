@@ -12,7 +12,7 @@ Figure 1: _Overview of the `AQuA` benchmark framework_. `AQuA` comprises of data
 If you use this code, please consider citing our work: 
 > [AQuA: A Benchmarking Tool for Label Quality Assessment]()
 Mononito Goswami, Vedant Sanil, Arjun Choudhry, Chalisa Udompanyawit, Artur Dubrawski\
-ArXiv Preprint, 2023\
+ArXiv Preprint, 2023
 
 ----
 
