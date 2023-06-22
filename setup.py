@@ -19,3 +19,54 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+import io
+import sys
+import setuptools
+import subprocess
+
+from aqua import __VERSION__
+
+NAME = 'aqua'
+VERSION = __VERSION__
+
+with io.open('README.md', 'r', encoding="utf-8") as fp:
+    description = fp.read()
+
+with open('requirements.txt', 'r') as reqfile:
+    req = [line.strip() for line in reqfile if line and not line.startswith('#')]
+
+def run(args):
+    subprocess.run(args, stdout=sys.stdout, stderr=sys.stdout, check=True, encoding='utf8')
+    sys.stdout.flush()
+
+#pkgs = [elem.replace('autonml/', '') for elem in glob('autonml/static/*', recursive=True) if os.path.isfile(elem)]
+
+setuptools.setup(
+    name=NAME,
+    version=VERSION,
+    install_requires=req,
+    url="https://github.com/autonlab/aqua",
+    description=r"AQuA: A Benchmarking Tool for Label Quality Assessment",
+    long_description=description,
+    packages=setuptools.find_packages(),
+    python_requires=">=3.7",
+    include_package_data=True,
+    author='Mononito Goswami, Vedant Sanil, Arjun Choudhry, Arvind Srinivasan, Chalisa Udompanyawit, Artur Dubrawski',
+    maintainer='Mononito Goswami, Vedant Sanil, Arvind Srinivasan',
+    maintainer_email='vsanil@andrew.cmu.edu',
+    keywords=['data-science', 'machine-learning', 'data-cleaning', 'robust-machine-learning', 'data-centric-ai'],
+    license='MIT-License',
+    long_description_content_type='text/markdown',
+    classifiers=[
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",]
+)
