@@ -26,11 +26,12 @@ Figure 1: _Overview of the `AQuA` benchmark framework_. `AQuA` comprises of data
 <a id="design_space"></a>
 ### A Design Space of Label Error Detection Methods
 
+
 <p align="center">
 <img height ="300px" src="assets/design_space.png">
 </p>
 
-Figure 2: Design space of labeling error detection models to delineate concrete design choices.
+Figure 2: Design space of labeling error detection models to delineate concrete design choices. For more details, check out Section 3 in our [paper](https://arxiv.org/pdf/2306.09467.pdf). 
 
 <a id="datasets"></a>
 ### List of supported datasets
@@ -156,10 +157,26 @@ Table 2: Performance of cleaning methods across different types of synthetic noi
 <a id="citation"></a>
 ## Citation
 
-If you use this code, please consider citing our work: 
-> [AQuA: A Benchmarking Tool for Label Quality Assessment]()
-Mononito Goswami, Vedant Sanil, Arjun Choudhry, Arvind Srinivasan, Chalisa Udompanyawit, Artur Dubrawski\
-ArXiv Preprint, 2023
+If you use AQuA in any scientific publication, please consider citing our work in addition to any model and data-specific references that are relevant for your work:
+```bib
+@article{goswami2023aqua,
+title={AQuA: A Benchmarking Tool for Label Quality Assessment},
+author={Goswami, Mononito and Sanil, Vedant and Choudhry, Arjun and Srinivasan, Arvind and Udompanyawit, Chalisa and Dubrawski, Artur},
+journal={arXiv preprint arXiv:2306.09467},
+year={2023}
+```
+
+<a id="contribution"></a>
+## Contributions
+
+If you use AQuA in any scientific publication, please consider citing our work in addition to any model and data-specific references that are relevant for your work:
+```bib
+@article{goswami2023aqua,
+title={AQuA: A Benchmarking Tool for Label Quality Assessment},
+author={Goswami, Mononito and Sanil, Vedant and Choudhry, Arjun and Srinivasan, Arvind and Udompanyawit, Chalisa and Dubrawski, Artur},
+journal={arXiv preprint arXiv:2306.09467},
+year={2023}
+```
 
 <a id="license"></a>
 ## License
