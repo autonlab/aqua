@@ -26,11 +26,12 @@ Figure 1: _Overview of the `AQuA` benchmark framework_. `AQuA` comprises of data
 <a id="design_space"></a>
 ### A Design Space of Label Error Detection Methods
 
+
 <p align="center">
 <img height ="300px" src="assets/design_space.png">
 </p>
 
-Figure 2: Design space of labeling error detection models to delineate concrete design choices.
+Figure 2: Design space of labeling error detection models to delineate concrete design choices. For more details, check out Section 3 in our [paper](https://arxiv.org/pdf/2306.09467.pdf). 
 
 <a id="datasets"></a>
 ### List of supported datasets
@@ -108,58 +109,846 @@ foo@bar:~$ python setup.py install
 <a id="results"></a>
 ### Results
 
-|     Datasets     | No Noise Injected |       |      |      |       | Assymmetric |      |      |      |      | Class-dependent |       |      |      |       | Instance-dependent |      |      |      |      | Uniform |      |      |      |      |
-|:----------------:|:-----------------:|:-----:|:----:|:----:|:-----:|:-----------:|:----:|:----:|:----:|:----:|:---------------:|:-----:|:----:|:----:|:-----:|:------------------:|:----:|:----:|:----:|:----:|:-------:|:----:|:----:|:----:|:----:|
-|                  |        **NON**       | **AUM**  | **CIN** | **CON** | **SIM**  |        **NON**       | **AUM**  | **CIN** | **CON** | **SIM**  |        **NON**       | **AUM**  | **CIN** | **CON** | **SIM**  |        **NON**       | **AUM**  | **CIN** | **CON** | **SIM**  |        **NON**       | **AUM**  | **CIN** | **CON** | **SIM**  |
-|       Crop       |        58.4       |  57.8 | 53.1 | 12.4 |  56.5 |     47.4    | 49.6 | 46.8 | 13.7 | 46.3 |       47.5      |  47.1 | 42.3 | 13.5 |  43.9 |        42.9        | 35.3 | 37.9 |  8.5 | 48.5 |   48.1  | 54.9 | 54.7 | 13.7 | 54.1 |
-| Electric Devices |        63.2       |  67.2 | 67.3 | 39.9 |  65.3 |     56.4    | 55.0 | 54.3 | 37.3 | 56.2 |       34.2      |  31.0 | 34.6 | 24.9 |  33.7 |        50.7        | 46.8 | 50.9 | 28.9 | 53.2 |   57.9  | 57.9 | 60.7 | 35.3 | 55.1 |
-|      MIT-BIH     |        76.0       |  64.8 | 86.9 | 72.5 |  76.4 |     75.3    | 78.2 | 72.1 | 52.3 | 71.6 |       82.4      |  80.5 | 83.2 | 76.2 |  82.2 |        67.0        | 71.9 | 75.1 | 66.3 | 77.4 |   84.5  | 77.1 | 87.3 | 74.3 | 81.8 |
-|     PenDigits    |        96.2       |  96.7 | 95.4 | 58.3 |  95.8 |     81.8    | 84.4 | 80.7 | 34.5 | 83.9 |       49.8      |  55.2 | 54.8 | 19.6 |  53.0 |        84.4        | 77.4 | 81.7 | 22.4 | 85.2 |   93.8  | 96.3 | 95.4 | 39.6 | 94.8 |
-|    WhaleCalls    |        85.6       |  34.7 | 59.6 | 62.4 |  62.9 |     52.5    | 63.7 | 52.2 | 48.9 | 54.3 |       39.1      |  41.1 | 40.3 | 41.9 |  41.9 |        51.4        | 58.9 | 68.5 | 47.8 | 50.8 |   53.5  | 42.8 | 60.5 | 44.5 | 62.2 |
-|       Adult      |        84.4       |  84.4 | 84.2 | 77.7 |  84.3 |     83.6    | 83.2 | 83.2 | 76.9 | 83.1 |       82.3      |  82.5 | 83.4 | 83.5 |  82.6 |        82.4        | 82.6 | 83.1 | 69.3 | 82.2 |   83.5  | 83.5 | 83.4 | 68.0 | 83.7 |
-|  Car Evaluation  |        92.4       |  89.9 | 79.7 | 57.6 |  89.3 |     82.9    | 81.4 | 64.5 | 59.0 | 75.8 |       90.3      |  86.6 | 83.3 | 57.6 |  85.0 |        77.3        | 75.9 | 68.7 | 58.4 | 73.7 |   81.1  | 76.3 | 73.1 | 57.6 | 74.3 |
-|      COMPAS      |        66.9       |  66.8 | 65.9 | 65.5 |  66.4 |     65.2    | 65.6 | 65.6 | 33.8 | 66.0 |       38.2      |  66.6 | 64.8 | 36.7 |  67.1 |        64.4        | 65.3 | 58.3 | 49.4 | 64.5 |   65.0  | 58.0 | 64.5 | 62.4 | 65.1 |
-|   Credit Fraud   |       100.0       | 100.0 | 99.9 | 99.9 | 100.0 |     99.9    | 99.9 | 99.9 | 99.8 | 99.9 |       99.9      |  99.9 | 99.9 | 99.8 | 100.0 |        99.9        | 99.7 | 99.8 | 99.9 | 99.7 |   99.9  | 99.9 | 99.9 | 75.0 | 99.9 |
-|     Dry Bean     |        92.0       |  91.2 | 91.0 | 67.3 |  90.8 |     82.5    | 84.6 | 88.8 | 51.7 | 84.6 |       91.2      |  89.8 | 89.3 | 19.8 |  88.2 |        84.8        | 81.7 | 83.0 | 40.5 | 87.3 |   86.0  | 90.6 | 90.7 | 62.1 | 62.1 |
-|     Mushrooms    |        99.5       | 100.0 | 99.3 | 99.7 |  99.8 |     98.1    | 98.3 | 98.3 | 81.6 | 98.9 |       99.3      | 100.0 | 98.6 | 98.4 |  99.8 |        96.2        | 96.8 | 96.4 | 75.7 | 95.9 |   98.9  | 98.0 | 98.2 | 89.3 | 98.5 |
-|     CIFAR-10     |        80.7       |  80.5 | 80.3 | 38.3 |  79.9 |     53.5    | 65.1 | 64.1 | 28.5 | 65.3 |       77.7      |  78.6 | 78.5 | 42.0 |  71.9 |        57.2        | 62.8 | 65.4 | 24.9 | 63.8 |   66.0  | 64.3 | 69.2 | 25.1 | 66.3 |
-|   Chest X-rays   |        64.4       |  65.2 | 65.0 | 15.0 |  63.9 |     51.4    | 50.3 | 54.2 |  8.1 | 50.2 |       63.3      |  62.9 | 65.4 |  7.9 |  63.5 |        48.4        | 48.4 | 52.4 | 10.6 | 48.9 |   52.7  | 52.4 | 59.5 |  9.6 | 51.5 |
-|   Clothing-100K  |        91.0       |  90.7 | 90.7 | 90.9 |  90.7 |     80.9    | 77.4 | 72.7 | 74.7 | 77.6 |       85.1      |  80.4 | 80.3 | 90.6 |  87.1 |        74.6        | 61.1 | 70.7 | 77.3 | 74.6 |   77.2  | 74.1 | 77.2 | 84.6 | 76.0 |
-|       IMDb       |        84.9       |  87.5 | 89.2 | 69.6 |  90.3 |     70.1    | 57.7 | 73.3 | 60.3 | 76.4 |       87.1      |  84.9 | 89.1 | 85.5 |  87.1 |        58.7        | 57.6 | 59.4 | 55.0 | 55.5 |   59.4  | 56.0 | 61.0 | 58.5 | 60.9 |
-|     TweetEval    |        73.6       |  73.6 | 77.1 | 65.1 |  76.8 |     65.9    | 65.5 | 68.7 | 55.2 | 69.6 |       77.0      |  80.1 | 78.7 | 51.4 |  77.9 |        66.1        | 67.6 | 68.2 | 67.5 | 55.8 |   71.2  | 68.2 | 73.8 | 45.4 | 70.1 |
+<table>
+    <tr>
+        <td><b>Datasets</td>
+        <td colspan=5><center><b>No Noise Injected</td>
+        <td colspan=5><center><b>Assymmetric</td>
+        <td colspan=5><center><b>Class-dependent</td>
+        <td colspan=5><center><b>Instance-dependent</td>
+        <td colspan=5><center><b>Uniform</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td><b>NON</td>
+        <td><b>AUM</td>
+        <td><b>CIN</td>
+        <td><b>CON</td>
+        <td><b>SIM</td>
+        <td><b>NON</td>
+        <td><b>AUM</td>
+        <td><b>CIN</td>
+        <td><b>CON</td>
+        <td><b>SIM</td>
+        <td><b>NON</td>
+        <td><b>AUM</td>
+        <td><b>CIN</td>
+        <td><b>CON</td>
+        <td><b>SIM</td>
+        <td><b>NON</td>
+        <td><b>AUM</td>
+        <td><b>CIN</td>
+        <td><b>CON</td>
+        <td><b>SIM</td>
+        <td><b>NON</td>
+        <td><b>AUM</td>
+        <td><b>CIN</td>
+        <td><b>CON</td>
+        <td><b>SIM</td>
+    </tr>
+    <tr>
+        <td>Crop</td>
+        <td>58.4</td>
+        <td>57.8</td>
+        <td>53.1</td>
+        <td>12.4</td>
+        <td>56.5</td>
+        <td>47.4</td>
+        <td>49.6</td>
+        <td>46.8</td>
+        <td>13.7</td>
+        <td>46.3</td>
+        <td>47.5</td>
+        <td>47.1</td>
+        <td>42.3</td>
+        <td>13.5</td>
+        <td>43.9</td>
+        <td>42.9</td>
+        <td>35.3</td>
+        <td>37.9</td>
+        <td>8.5</td>
+        <td>48.5</td>
+        <td>48.1</td>
+        <td>54.9</td>
+        <td>54.7</td>
+        <td>13.7</td>
+        <td>54.1</td>
+    </tr>
+    <tr>
+        <td>Electric Devices</td>
+        <td>63.2</td>
+        <td>67.2</td>
+        <td>67.3</td>
+        <td>39.9</td>
+        <td>65.3</td>
+        <td>56.4</td>
+        <td>55.0</td>
+        <td>54.3</td>
+        <td>37.3</td>
+        <td>56.2</td>
+        <td>34.2</td>
+        <td>31.0</td>
+        <td>34.6</td>
+        <td>24.9</td>
+        <td>33.7</td>
+        <td>50.7</td>
+        <td>46.8</td>
+        <td>50.9</td>
+        <td>28.9</td>
+        <td>53.2</td>
+        <td>57.9</td>
+        <td>57.9</td>
+        <td>60.7</td>
+        <td>35.3</td>
+        <td>55.1</td>
+    </tr>
+    <tr>
+        <td>MIT-BIH</td>
+        <td>76.0</td>
+        <td>64.8</td>
+        <td>86.9</td>
+        <td>72.5</td>
+        <td>76.4</td>
+        <td>75.3</td>
+        <td>78.2</td>
+        <td>72.1</td>
+        <td>52.3</td>
+        <td>71.6</td>
+        <td>82.4</td>
+        <td>80.5</td>
+        <td>83.2</td>
+        <td>76.2</td>
+        <td>82.2</td>
+        <td>67.0</td>
+        <td>71.9</td>
+        <td>75.1</td>
+        <td>66.3</td>
+        <td>77.4</td>
+        <td>84.5</td>
+        <td>77.1</td>
+        <td>87.3</td>
+        <td>74.3</td>
+        <td>81.8</td>
+    </tr>
+    <tr>
+        <td>PenDigits</td>
+        <td>96.2</td>
+        <td>96.7</td>
+        <td>95.4</td>
+        <td>58.3</td>
+        <td>95.8</td>
+        <td>81.8</td>
+        <td>84.4</td>
+        <td>80.7</td>
+        <td>34.5</td>
+        <td>83.9</td>
+        <td>49.8</td>
+        <td>55.2</td>
+        <td>54.8</td>
+        <td>19.6</td>
+        <td>53.0</td>
+        <td>84.4</td>
+        <td>77.4</td>
+        <td>81.7</td>
+        <td>22.4</td>
+        <td>85.2</td>
+        <td>93.8</td>
+        <td>96.3</td>
+        <td>95.4</td>
+        <td>39.6</td>
+        <td>94.8</td>
+    </tr>
+    <tr>
+        <td>WhaleCalls</td>
+        <td>85.6</td>
+        <td>34.7</td>
+        <td>59.6</td>
+        <td>62.4</td>
+        <td>62.9</td>
+        <td>52.5</td>
+        <td>63.7</td>
+        <td>52.2</td>
+        <td>48.9</td>
+        <td>54.3</td>
+        <td>39.1</td>
+        <td>41.1</td>
+        <td>40.3</td>
+        <td>41.9</td>
+        <td>41.9</td>
+        <td>51.4</td>
+        <td>58.9</td>
+        <td>68.5</td>
+        <td>47.8</td>
+        <td>50.8</td>
+        <td>53.5</td>
+        <td>42.8</td>
+        <td>60.5</td>
+        <td>44.5</td>
+        <td>62.2</td>
+    </tr>
+    <tr>
+        <td>Adult</td>
+        <td>84.4</td>
+        <td>84.4</td>
+        <td>84.2</td>
+        <td>77.7</td>
+        <td>84.3</td>
+        <td>83.6</td>
+        <td>83.2</td>
+        <td>83.2</td>
+        <td>76.9</td>
+        <td>83.1</td>
+        <td>82.3</td>
+        <td>82.5</td>
+        <td>83.4</td>
+        <td>83.5</td>
+        <td>82.6</td>
+        <td>82.4</td>
+        <td>82.6</td>
+        <td>83.1</td>
+        <td>69.3</td>
+        <td>82.2</td>
+        <td>83.5</td>
+        <td>83.5</td>
+        <td>83.4</td>
+        <td>68.0</td>
+        <td>83.7</td>
+    </tr>
+    <tr>
+        <td>Car Evaluation</td>
+        <td>92.4</td>
+        <td>89.9</td>
+        <td>79.7</td>
+        <td>57.6</td>
+        <td>89.3</td>
+        <td>82.9</td>
+        <td>81.4</td>
+        <td>64.5</td>
+        <td>59.0</td>
+        <td>75.8</td>
+        <td>90.3</td>
+        <td>86.6</td>
+        <td>83.3</td>
+        <td>57.6</td>
+        <td>85.0</td>
+        <td>77.3</td>
+        <td>75.9</td>
+        <td>68.7</td>
+        <td>58.4</td>
+        <td>73.7</td>
+        <td>81.1</td>
+        <td>76.3</td>
+        <td>73.1</td>
+        <td>57.6</td>
+        <td>74.3</td>
+    </tr>
+    <tr>
+        <td>COMPAS</td>
+        <td>66.9</td>
+        <td>66.8</td>
+        <td>65.9</td>
+        <td>65.5</td>
+        <td>66.4</td>
+        <td>65.2</td>
+        <td>65.6</td>
+        <td>65.6</td>
+        <td>33.8</td>
+        <td>66.0</td>
+        <td>38.2</td>
+        <td>66.6</td>
+        <td>64.8</td>
+        <td>36.7</td>
+        <td>67.1</td>
+        <td>64.4</td>
+        <td>65.3</td>
+        <td>58.3</td>
+        <td>49.4</td>
+        <td>64.5</td>
+        <td>65.0</td>
+        <td>58.0</td>
+        <td>64.5</td>
+        <td>62.4</td>
+        <td>65.1</td>
+    </tr>
+    <tr>
+        <td>Credit Fraud</td>
+        <td>100.0</td>
+        <td>100.0</td>
+        <td>99.9</td>
+        <td>99.9</td>
+        <td>100.0</td>
+        <td>99.9</td>
+        <td>99.9</td>
+        <td>99.9</td>
+        <td>99.8</td>
+        <td>99.9</td>
+        <td>99.9</td>
+        <td>99.9</td>
+        <td>99.9</td>
+        <td>99.8</td>
+        <td>100.0</td>
+        <td>99.9</td>
+        <td>99.7</td>
+        <td>99.8</td>
+        <td>99.9</td>
+        <td>99.7</td>
+        <td>99.9</td>
+        <td>99.9</td>
+        <td>99.9</td>
+        <td>75.0</td>
+        <td>99.9</td>
+    </tr>
+    <tr>
+        <td>Dry Bean</td>
+        <td>92.0</td>
+        <td>91.2</td>
+        <td>91.0</td>
+        <td>67.3</td>
+        <td>90.8</td>
+        <td>82.5</td>
+        <td>84.6</td>
+        <td>88.8</td>
+        <td>51.7</td>
+        <td>84.6</td>
+        <td>91.2</td>
+        <td>89.8</td>
+        <td>89.3</td>
+        <td>19.8</td>
+        <td>88.2</td>
+        <td>84.8</td>
+        <td>81.7</td>
+        <td>83.0</td>
+        <td>40.5</td>
+        <td>87.3</td>
+        <td>86.0</td>
+        <td>90.6</td>
+        <td>90.7</td>
+        <td>62.1</td>
+        <td>62.1</td>
+    </tr>
+    <tr>
+        <td>Mushrooms</td>
+        <td>99.5</td>
+        <td>100.0</td>
+        <td>99.3</td>
+        <td>99.7</td>
+        <td>99.8</td>
+        <td>98.1</td>
+        <td>98.3</td>
+        <td>98.3</td>
+        <td>81.6</td>
+        <td>98.9</td>
+        <td>99.3</td>
+        <td>100.0</td>
+        <td>98.6</td>
+        <td>98.4</td>
+        <td>99.8</td>
+        <td>96.2</td>
+        <td>96.8</td>
+        <td>96.4</td>
+        <td>75.7</td>
+        <td>95.9</td>
+        <td>98.9</td>
+        <td>98.0</td>
+        <td>98.2</td>
+        <td>89.3</td>
+        <td>98.5</td>
+    </tr>
+    <tr>
+        <td>CIFAR-10</td>
+        <td>80.7</td>
+        <td>80.5</td>
+        <td>80.3</td>
+        <td>38.3</td>
+        <td>79.9</td>
+        <td>53.5</td>
+        <td>65.1</td>
+        <td>64.1</td>
+        <td>28.5</td>
+        <td>65.3</td>
+        <td>77.7</td>
+        <td>78.6</td>
+        <td>78.5</td>
+        <td>42.0</td>
+        <td>71.9</td>
+        <td>57.2</td>
+        <td>62.8</td>
+        <td>65.4</td>
+        <td>24.9</td>
+        <td>63.8</td>
+        <td>66.0</td>
+        <td>64.3</td>
+        <td>69.2</td>
+        <td>25.1</td>
+        <td>66.3</td>
+    </tr>
+    <tr>
+        <td>Chest X-rays</td>
+        <td>64.4</td>
+        <td>65.2</td>
+        <td>65.0</td>
+        <td>15.0</td>
+        <td>63.9</td>
+        <td>51.4</td>
+        <td>50.3</td>
+        <td>54.2</td>
+        <td>8.1</td>
+        <td>50.2</td>
+        <td>63.3</td>
+        <td>62.9</td>
+        <td>65.4</td>
+        <td>7.9</td>
+        <td>63.5</td>
+        <td>48.4</td>
+        <td>48.4</td>
+        <td>52.4</td>
+        <td>10.6</td>
+        <td>48.9</td>
+        <td>52.7</td>
+        <td>52.4</td>
+        <td>59.5</td>
+        <td>9.6</td>
+        <td>51.5</td>
+    </tr>
+    <tr>
+        <td>Clothing-100K</td>
+        <td>91.0</td>
+        <td>90.7</td>
+        <td>90.7</td>
+        <td>90.9</td>
+        <td>90.7</td>
+        <td>80.9</td>
+        <td>77.4</td>
+        <td>72.7</td>
+        <td>74.7</td>
+        <td>77.6</td>
+        <td>85.1</td>
+        <td>80.4</td>
+        <td>80.3</td>
+        <td>90.6</td>
+        <td>87.1</td>
+        <td>74.6</td>
+        <td>61.1</td>
+        <td>70.7</td>
+        <td>77.3</td>
+        <td>74.6</td>
+        <td>77.2</td>
+        <td>74.1</td>
+        <td>77.2</td>
+        <td>84.6</td>
+        <td>76.0</td>
+    </tr>
+    <tr>
+        <td>IMDb</td>
+        <td>84.9</td>
+        <td>87.5</td>
+        <td>89.2</td>
+        <td>69.6</td>
+        <td>90.3</td>
+        <td>70.1</td>
+        <td>57.7</td>
+        <td>73.3</td>
+        <td>60.3</td>
+        <td>76.4</td>
+        <td>87.1</td>
+        <td>84.9</td>
+        <td>89.1</td>
+        <td>85.5</td>
+        <td>87.1</td>
+        <td>58.7</td>
+        <td>57.6</td>
+        <td>59.4</td>
+        <td>55.0</td>
+        <td>55.5</td>
+        <td>59.4</td>
+        <td>56.0</td>
+        <td>61.0</td>
+        <td>58.5</td>
+        <td>60.9</td>
+    </tr>
+    <tr>
+        <td>TweetEval</td>
+        <td>73.6</td>
+        <td>73.6</td>
+        <td>77.1</td>
+        <td>65.1</td>
+        <td>76.8</td>
+        <td>65.9</td>
+        <td>65.5</td>
+        <td>68.7</td>
+        <td>55.2</td>
+        <td>69.6</td>
+        <td>77.0</td>
+        <td>80.1</td>
+        <td>78.7</td>
+        <td>51.4</td>
+        <td>77.9</td>
+        <td>66.1</td>
+        <td>67.6</td>
+        <td>68.2</td>
+        <td>67.5</td>
+        <td>55.8</td>
+        <td>71.2</td>
+        <td>68.2</td>
+        <td>73.8</td>
+        <td>45.4</td>
+        <td>70.1</td>
+    </tr>
+</table>
 
 Table 1: Impact of label noise on weighted F1 score of a downstream model for each modality on the test set, averaged across noise rates and downstream models.
 
 
-|     Datasets     | Asymmetric |       |       |       | Class-dependent |       |       |       | Instance-dependent |       |       |       | Uniform |       |       |       |
-|------------------|:----------:|:-----:|:-----:|:-----:|:---------------:|:-----:|:-----:|:-----:|:------------------:|:-----:|:-----:|:-----:|:-------:|:-----:|:-----:|:-----:|
-|                  |  **AUM**   |**CIN**|**CON**|**SIM**|      **AUM**    |**CIN**|**CON**|**SIM**|       **AUM**      |**CIN**|**CON**|**SIM**| **AUM** |**CIN**|**CON**|**SIM**|
-|       Crop       |    65.5    | 65.6  | 21.3  | 70.3  |       40.8      |  61.1 | 32.9  | 60.7  |        59.4        | 57.7  | 25.1  | 68.9  |   65.8  | 76.4  | 21.7  | 77.3  |
-| Electric Devices |    65.2    | 74.3  | 38.8  | 74.7  |       41.3      |  67.7 | 51.1  | 64.9  |        60.1        | 64.8  | 31.7  | 71.9  |   65.5  | 82.8  | 33.2  | 81.1  |
-|      MIT-BIH     |    65.3    | 78.1  | 48.6  | 70.6  |       55.5      |  67.3 | 45.6  | 75.3  |        59.7        | 70.6  | 47.6  | 71.1  |   65.1  | 86.6  | 50.0  | 81.9  |
-|     PenDigits    |    65.3    | 81.5  | 26.6  | 73.6  |       51.9      |  51.1 | 49.7  | 78.9  |        59.6        | 78.0  | 23.6  | 74.5  |   65.6  | 94.7  | 26.1  | 75.1  |
-|    WhaleCalls    |    65.3    | 66.3  | 57.9  | 69.3  |       34.4      |  38.7 | 50.8  | 39.0  |        59.2        | 60.3  | 54.6  | 62.1  |   65.3  | 65.7  | 57.6  | 70.3  |
-|       Adult      |    65.3    | 65.8  | 59.2  | 69.1  |       62.5      |  63.4 | 58.1  | 63.5  |        59.3        | 60.1  | 62.9  | 60.8  |   65.3  | 65.9  | 62.3  | 66.5  |
-|  Car Evaluation  |    65.2    | 73.7  | 77.2  | 78.6  |       85.6      |  91.8 | 84.1  | 88.2  |        59.5        | 71.1  | 74.4  | 68.5  |   64.2  | 81.0  | 78.3  | 83.7  |
-|      COMPAS      |    65.3    | 65.4  | 59.7  | 66.3  |       55.6      |  55.4 | 53.3  | 55.3  |        58.9        | 59.4  | 54.6  | 65.3  |   65.3  | 65.2  | 57.8  | 64.6  |
-|   Credit Fraud   |    65.3    | 65.2  | 69.5  | 66.9  |       77.9      |  78.0 | 91.1  | 93.7  |        59.4        | 59.0  | 67.5  | 65.0  |   65.4  | 65.2  | 58.9  | 69.4  |
-|     Dry Bean     |    65.3    | 80.1  | 37.2  | 73.0  |       86.6      |  94.5 | 34.6  | 90.3  |        59.5        | 76.9  | 32.4  | 70.0  |   65.1  | 88.3  | 40.1  | 74.0  |
-|     Mushrooms    |    65.3    | 73.7  | 57.0  | 75.3  |       99.2      | 100.0 | 70.1  | 99.8  |        59.0        | 65.0  | 53.6  | 62.6  |   65.7  | 74.5  | 55.2  | 78.1  |
-|     CIFAR-10     |    65.4    | 70.9  | 25.2  | 68.6  |       94.7      |  86.1 | 17.9  | 94.4  |        59.4        | 70.6  | 26.9  | 64.8  |   65.4  | 75.4  | 25.1  | 72.3  |
-|   Chest X-rays   |    65.3    | 67.9  | 22.3  | 65.2  |       95.2      |  83.7 | 15.2  | 95.8  |        59.4        | 68.7  | 24.8  | 59.5  |   65.4  | 74.3  | 22.5  | 65.2  |
-|   Clothing-100K  |    65.2    | 60.6  | 70.9  | 65.1  |       88.7      |  84.7 | 82.2  | 88.9  |        59.1        | 52.4  | 73.7  | 58.8  |   65.3  | 59.3  | 78.2  | 65.1  |
-|       IMDb       |    65.3    | 65.8  | 56.8  | 69.7  |       90.7      |  89.4 | 62.1  | 94.5  |        59.6        | 62.1  | 53.8  | 64.6  |   65.2  | 65.3  | 55.1  | 69.4  |
-|     TweetEval    |    65.4    | 65.6  | 55.2  | 68.8  |       71.6      |  72.3 | 55.0  | 73.4  |        59.4        | 59.2  | 56.8  | 64.8  |   64.9  | 65.0  | 51.9  | 69.2  |
+<table>
+    <tr>
+        <td>Datasets</td>
+        <td colspan=4><center><b>Asymmetric</td>
+        <td colspan=4><center><b>Class-dependent</td>
+        <td colspan=4><center><b>Instance-dependent</td>
+        <td colspan=4><center><b>Uniform</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td><b>AUM</td>
+        <td><b>CIN</td>
+        <td><b>CON</td>
+        <td><b>SIM</td>
+        <td><b>AUM</td>
+        <td><b>CIN</td>
+        <td><b>CON</td>
+        <td><b>SIM</td>
+        <td><b>AUM</td>
+        <td><b>CIN</td>
+        <td><b>CON</td>
+        <td><b>SIM</td>
+        <td><b>AUM</td>
+        <td><b>CIN</td>
+        <td><b>CON</td>
+        <td><b>SIM</td>
+    </tr>
+    <tr>
+        <td>Crop</td>
+        <td>65.5</td>
+        <td>65.6</td>
+        <td>21.3</td>
+        <td>70.3</td>
+        <td>40.8</td>
+        <td>61.1</td>
+        <td>32.9</td>
+        <td>60.7</td>
+        <td>59.4</td>
+        <td>57.7</td>
+        <td>25.1</td>
+        <td>68.9</td>
+        <td>65.8</td>
+        <td>76.4</td>
+        <td>21.7</td>
+        <td>77.3</td>
+    </tr>
+    <tr>
+        <td>Electric Devices</td>
+        <td>65.2</td>
+        <td>74.3</td>
+        <td>38.8</td>
+        <td>74.7</td>
+        <td>41.3</td>
+        <td>67.7</td>
+        <td>51.1</td>
+        <td>64.9</td>
+        <td>60.1</td>
+        <td>64.8</td>
+        <td>31.7</td>
+        <td>71.9</td>
+        <td>65.5</td>
+        <td>82.8</td>
+        <td>33.2</td>
+        <td>81.1</td>
+    </tr>
+    <tr>
+        <td>MIT-BIH</td>
+        <td>65.3</td>
+        <td>78.1</td>
+        <td>48.6</td>
+        <td>70.6</td>
+        <td>55.5</td>
+        <td>67.3</td>
+        <td>45.6</td>
+        <td>75.3</td>
+        <td>59.7</td>
+        <td>70.6</td>
+        <td>47.6</td>
+        <td>71.1</td>
+        <td>65.1</td>
+        <td>86.6</td>
+        <td>50.0</td>
+        <td>81.9</td>
+    </tr>
+    <tr>
+        <td>PenDigits</td>
+        <td>65.3</td>
+        <td>81.5</td>
+        <td>26.6</td>
+        <td>73.6</td>
+        <td>51.9</td>
+        <td>51.1</td>
+        <td>49.7</td>
+        <td>78.9</td>
+        <td>59.6</td>
+        <td>78.0</td>
+        <td>23.6</td>
+        <td>74.5</td>
+        <td>65.6</td>
+        <td>94.7</td>
+        <td>26.1</td>
+        <td>75.1</td>
+    </tr>
+    <tr>
+        <td>WhaleCalls</td>
+        <td>65.3</td>
+        <td>66.3</td>
+        <td>57.9</td>
+        <td>69.3</td>
+        <td>34.4</td>
+        <td>38.7</td>
+        <td>50.8</td>
+        <td>39.0</td>
+        <td>59.2</td>
+        <td>60.3</td>
+        <td>54.6</td>
+        <td>62.1</td>
+        <td>65.3</td>
+        <td>65.7</td>
+        <td>57.6</td>
+        <td>70.3</td>
+    </tr>
+    <tr>
+        <td>Adult</td>
+        <td>65.3</td>
+        <td>65.8</td>
+        <td>59.2</td>
+        <td>69.1</td>
+        <td>62.5</td>
+        <td>63.4</td>
+        <td>58.1</td>
+        <td>63.5</td>
+        <td>59.3</td>
+        <td>60.1</td>
+        <td>62.9</td>
+        <td>60.8</td>
+        <td>65.3</td>
+        <td>65.9</td>
+        <td>62.3</td>
+        <td>66.5</td>
+    </tr>
+    <tr>
+        <td>Car Evaluation</td>
+        <td>65.2</td>
+        <td>73.7</td>
+        <td>77.2</td>
+        <td>78.6</td>
+        <td>85.6</td>
+        <td>91.8</td>
+        <td>84.1</td>
+        <td>88.2</td>
+        <td>59.5</td>
+        <td>71.1</td>
+        <td>74.4</td>
+        <td>68.5</td>
+        <td>64.2</td>
+        <td>81.0</td>
+        <td>78.3</td>
+        <td>83.7</td>
+    </tr>
+    <tr>
+        <td>COMPAS</td>
+        <td>65.3</td>
+        <td>65.4</td>
+        <td>59.7</td>
+        <td>66.3</td>
+        <td>55.6</td>
+        <td>55.4</td>
+        <td>53.3</td>
+        <td>55.3</td>
+        <td>58.9</td>
+        <td>59.4</td>
+        <td>54.6</td>
+        <td>65.3</td>
+        <td>65.3</td>
+        <td>65.2</td>
+        <td>57.8</td>
+        <td>64.6</td>
+    </tr>
+    <tr>
+        <td>Credit Fraud</td>
+        <td>65.3</td>
+        <td>65.2</td>
+        <td>69.5</td>
+        <td>66.9</td>
+        <td>77.9</td>
+        <td>78.0</td>
+        <td>91.1</td>
+        <td>93.7</td>
+        <td>59.4</td>
+        <td>59.0</td>
+        <td>67.5</td>
+        <td>65.0</td>
+        <td>65.4</td>
+        <td>65.2</td>
+        <td>58.9</td>
+        <td>69.4</td>
+    </tr>
+    <tr>
+        <td>Dry Bean</td>
+        <td>65.3</td>
+        <td>80.1</td>
+        <td>37.2</td>
+        <td>73.0</td>
+        <td>86.6</td>
+        <td>94.5</td>
+        <td>34.6</td>
+        <td>90.3</td>
+        <td>59.5</td>
+        <td>76.9</td>
+        <td>32.4</td>
+        <td>70.0</td>
+        <td>65.1</td>
+        <td>88.3</td>
+        <td>40.1</td>
+        <td>74.0</td>
+    </tr>
+    <tr>
+        <td>Mushrooms</td>
+        <td>65.3</td>
+        <td>73.7</td>
+        <td>57.0</td>
+        <td>75.3</td>
+        <td>99.2</td>
+        <td>100.0</td>
+        <td>70.1</td>
+        <td>99.8</td>
+        <td>59.0</td>
+        <td>65.0</td>
+        <td>53.6</td>
+        <td>62.6</td>
+        <td>65.7</td>
+        <td>74.5</td>
+        <td>55.2</td>
+        <td>78.1</td>
+    </tr>
+    <tr>
+        <td>CIFAR-10</td>
+        <td>65.4</td>
+        <td>70.9</td>
+        <td>25.2</td>
+        <td>68.6</td>
+        <td>94.7</td>
+        <td>86.1</td>
+        <td>17.9</td>
+        <td>94.4</td>
+        <td>59.4</td>
+        <td>70.6</td>
+        <td>26.9</td>
+        <td>64.8</td>
+        <td>65.4</td>
+        <td>75.4</td>
+        <td>25.1</td>
+        <td>72.3</td>
+    </tr>
+    <tr>
+        <td>Chest X-rays</td>
+        <td>65.3</td>
+        <td>67.9</td>
+        <td>22.3</td>
+        <td>65.2</td>
+        <td>95.2</td>
+        <td>83.7</td>
+        <td>15.2</td>
+        <td>95.8</td>
+        <td>59.4</td>
+        <td>68.7</td>
+        <td>24.8</td>
+        <td>59.5</td>
+        <td>65.4</td>
+        <td>74.3</td>
+        <td>22.5</td>
+        <td>65.2</td>
+    </tr>
+    <tr>
+        <td>Clothing-100K</td>
+        <td>65.2</td>
+        <td>60.6</td>
+        <td>70.9</td>
+        <td>65.1</td>
+        <td>88.7</td>
+        <td>84.7</td>
+        <td>82.2</td>
+        <td>88.9</td>
+        <td>59.1</td>
+        <td>52.4</td>
+        <td>73.7</td>
+        <td>58.8</td>
+        <td>65.3</td>
+        <td>59.3</td>
+        <td>78.2</td>
+        <td>65.1</td>
+    </tr>
+    <tr>
+        <td>IMDb</td>
+        <td>65.3</td>
+        <td>65.8</td>
+        <td>56.8</td>
+        <td>69.7</td>
+        <td>90.7</td>
+        <td>89.4</td>
+        <td>62.1</td>
+        <td>94.5</td>
+        <td>59.6</td>
+        <td>62.1</td>
+        <td>53.8</td>
+        <td>64.6</td>
+        <td>65.2</td>
+        <td>65.3</td>
+        <td>55.1</td>
+        <td>69.4</td>
+    </tr>
+    <tr>
+        <td>TweetEval</td>
+        <td>65.4</td>
+        <td>65.6</td>
+        <td>55.2</td>
+        <td>68.8</td>
+        <td>71.6</td>
+        <td>72.3</td>
+        <td>55.0</td>
+        <td>73.4</td>
+        <td>59.4</td>
+        <td>59.2</td>
+        <td>56.8</td>
+        <td>64.8</td>
+        <td>64.9</td>
+        <td>65.0</td>
+        <td>51.9</td>
+        <td>69.2</td>
+    </tr>
+</table>
 
 Table 2: Performance of cleaning methods across different types of synthetic noise added to the train set in terms of weighted F1, averaged across noise rates and downstream models.
 
 <a id="citation"></a>
 ## Citation
 
-If you use this code, please consider citing our work: 
-> [AQuA: A Benchmarking Tool for Label Quality Assessment]()
-Mononito Goswami, Vedant Sanil, Arjun Choudhry, Arvind Srinivasan, Chalisa Udompanyawit, Artur Dubrawski\
-ArXiv Preprint, 2023
+If you use AQuA in any scientific publication, please consider citing our work in addition to any model and data-specific references that are relevant for your work:
+```bib
+@article{goswami2023aqua,
+title={AQuA: A Benchmarking Tool for Label Quality Assessment},
+author={Goswami, Mononito and Sanil, Vedant and Choudhry, Arjun and Srinivasan, Arvind and Udompanyawit, Chalisa and Dubrawski, Artur},
+journal={arXiv preprint arXiv:2306.09467},
+year={2023}
+```
+
+<a id="contribution"></a>
+## Contributions
+We encourage researchers to contribute their methods and datasets to AQuA. We are actively working on contributing guidelines. Stay tuned for updates!
 
 <a id="license"></a>
 ## License
