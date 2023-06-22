@@ -150,6 +150,7 @@ Table 1: Impact of label noise on weighted F1 score of a downstream model for ea
 |   Clothing-100K  |    65.2    | 60.6  | 70.9  | 65.1  |       88.7      |  84.7 | 82.2  | 88.9  |        59.1        | 52.4  | 73.7  | 58.8  |   65.3  | 59.3  | 78.2  | 65.1  |
 |       IMDb       |    65.3    | 65.8  | 56.8  | 69.7  |       90.7      |  89.4 | 62.1  | 94.5  |        59.6        | 62.1  | 53.8  | 64.6  |   65.2  | 65.3  | 55.1  | 69.4  |
 |     TweetEval    |    65.4    | 65.6  | 55.2  | 68.8  |       71.6      |  72.3 | 55.0  | 73.4  |        59.4        | 59.2  | 56.8  | 64.8  |   64.9  | 65.0  | 51.9  | 69.2  |
+
 Table 2: Performance of cleaning methods across different types of synthetic noise added to the train set in terms of weighted F1, averaged across noise rates and downstream models.
 
 <a id="citation"></a>
