@@ -168,15 +168,7 @@ year={2023}
 
 <a id="contribution"></a>
 ## Contributions
-
-If you use AQuA in any scientific publication, please consider citing our work in addition to any model and data-specific references that are relevant for your work:
-```bib
-@article{goswami2023aqua,
-title={AQuA: A Benchmarking Tool for Label Quality Assessment},
-author={Goswami, Mononito and Sanil, Vedant and Choudhry, Arjun and Srinivasan, Arvind and Udompanyawit, Chalisa and Dubrawski, Artur},
-journal={arXiv preprint arXiv:2306.09467},
-year={2023}
-```
+We encourage researchers to contribute their methods and datasets to AQuA. We are actively working on contributing guidlines. Stay tuned for updates!
 
 <a id="license"></a>
 ## License
