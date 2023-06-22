@@ -1,14 +1,9 @@
-imagenet-x
 cleanlab==2.3.1
 aum
 datasets==2.11.0
 wfdb==4.1.0
-torch==1.13.1
+torch>=1.13.1
 scikit-image==0.19.3
-pydicom==2.3.1
-pytorch-lightning==1.5.5
-yacs==0.1.8
-lightning-bolts==0.4.0
 torchmetrics==0.11.3
 transformers==4.26.1
 openpyxl==3.1.2
@@ -20,4 +15,4 @@ datasets==2.11.0
 dill==0.3.6
 numpy>1.22.0
 Pillow==9.0.1
-torchvision
+torchvision>=0.14.1
