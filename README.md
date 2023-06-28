@@ -9,6 +9,12 @@ Machine learning (ML) models are only as good as the data they are trained on. B
 
 Figure 1: _Overview of the `AQuA` benchmark framework_. `AQuA` comprises of datasets from **4** modalities, **4** single-label and **3** multi-annotator label noise injection methods, **4** state-of-the-art label error detection models, classification models, and several evaluation metrics beyond metrics of predictive accuracy. We are in the process of integrating several fairness, generalization, and robustness metrics into `AQuA`. The red and blue arrows show two example experimental pipelines for image data and time-series data, respectively. 
 
+<p align="center">
+<img height ="300px" src="assets/label_errors.png">
+</p>
+
+Figure 2: Labeling errors in widely used benchmarks: CIFAR-10, Clothing-100K, MIT-BIH, and TweetEval Hate Speech datasets. Observed labels are in red and true labels are in green.
+
 ----
 
 ## Contents
@@ -21,7 +27,8 @@ Figure 1: _Overview of the `AQuA` benchmark framework_. `AQuA` comprises of data
 6. [Compatibility and Installation](#installation)
 7. [Results](#results)
 8. [Citation](#citation)
-9. [License](#license)
+9. [Sources and their Licenses](#sources)
+10. [License](#license)
 
 <a id="design_space"></a>
 ### A Design Space of Label Error Detection Methods
@@ -31,10 +38,10 @@ Figure 1: _Overview of the `AQuA` benchmark framework_. `AQuA` comprises of data
 <img height ="300px" src="assets/design_space.png">
 </p>
 
-Figure 2: Design space of labeling error detection models to delineate concrete design choices. For more details, check out Section 3 in our [paper](https://arxiv.org/pdf/2306.09467.pdf). 
+Figure 3: Design space of labeling error detection models to delineate concrete design choices. For more details, check out Section 3 in our [paper](https://arxiv.org/pdf/2306.09467.pdf). 
 
 <a id="datasets"></a>
-### List of supported datasets
+## List of supported datasets
 * Text
     * IMDB Sentiment Analysis (name:`imdb`)
     * TweetEval (name:`tweeteval`)
@@ -57,7 +64,7 @@ Figure 2: Design space of labeling error detection models to delineate concrete 
     * Car Evaluation: Classify condition of cars (name: `car_evaluation`)
 
 <a id="models"></a>
-### List of Supported Models:
+## List of Supported Models:
 * Text:
     * MiniLM-L6 (name: ` all-MiniLM-L6-v2`)
     * DistilRoBERTa (name: `all-distilroberta-v1`)
@@ -71,7 +78,7 @@ Figure 2: Design space of labeling error detection models to delineate concrete 
     * MLP (name: `mlp`)
 
 <a id="cleaning_methods"></a>
-### List of Supported Cleaning Methods
+## List of Supported Cleaning Methods
 
 * AUM (name: `aum`)
 * CINCER (name: `cincer`)
@@ -81,7 +88,7 @@ Figure 2: Design space of labeling error detection models to delineate concrete 
 All names indicated inside parentheses can be used to fill `aqua/configs/main_config.json`. `main_config.json` is the main entry point for setting up experiments. Each  dataset, model and cleaning method have their own config files under `aqua/configs/datasets`, `aqua/configs/models/base` and `aqua/configs/models/cleaning` respectively.
 
 <a id="syn_noise"></a>
-### Synthetic Noise
+## Synthetic Noise
 * For single-label datasets:
     * Uniform Noise
     * Class-dependent Noise
@@ -93,7 +100,7 @@ All names indicated inside parentheses can be used to fill `aqua/configs/main_co
     * Crowd Majority
 
 <a id="installation"></a>
-### Compatibility and Installation
+## Compatibility and Installation
 
 `aqua` requires `python` 3.7+ to install. 
 
@@ -107,7 +114,7 @@ foo@bar:~$ python setup.py install
 ```
 
 <a id="results"></a>
-### Results
+## Results
 
 <table>
     <tr>
@@ -947,10 +954,182 @@ year={2023}
 ```
 
 <a id="contribution"></a>
-## Contributions
-We encourage researchers to contribute their methods and datasets to AQuA. We are actively working on contributing guidelines. Stay tuned for updates!
+## Contribution Guidelines
+Thank you for your interest in contributing to our project. Whether it's a bug report, new feature, correction, or additional documentation, we greatly value feedback and contributions from our community.
 
+Please read through this document before submitting any issues or pull requests to ensure we have all the necessary information to effectively respond to your bug report or contribution.
 
+#### Questions and discussion topics
+
+Questions and discussion topics can be proposed using [discussions](https://github.com/autonlab/aqua/discussions).
+
+#### Reporting Bugs/Feature Requests
+
+We welcome you to use the GitHub [issue tracker](https://github.com/autonlab/aqua/issues) to report bugs or suggest features.
+
+When filing an issue, please check [existing open](https://github.com/autonlab/aqua/issues), or [recently closed](https://github.com/autonlab/aqua/issues?q=is%3Aissue+is%3Aclosed), issues to make sure somebody else hasn't already reported the issue. Please try to include as much information as you can. Details like these are incredibly useful:
+
+* A reproducible test case or series of steps
+* The version of our code being used
+* Any modifications you've made relevant to the bug
+* Anything unusual about your environment or deployment
+
+#### Contributing via Pull Requests
+
+Contributions via pull requests are much appreciated. Before sending us a pull request, please ensure that:
+
+1. You are working against the latest source on the `main` branch.
+2. You check existing open, and recently merged, pull requests to make sure someone else hasn't addressed the problem already.
+3. You open an issue to discuss any significant work - we would hate for your time to be wasted.
+
+To send us a pull request, please:
+
+1. Fork the repository.
+2. Modify the source; please focus on the specific change you are contributing. If you also reformat all the code, it will be hard for us to focus on your change.
+3. Ensure local tests pass by executing `pytest`.
+4. Commit to your fork using clear commit messages.
+5. Send us a pull request, answering any default questions in the pull request interface.
+6. Pay attention to any automated CI failures reported in the pull request, and stay involved in the conversation.
+
+GitHub provides additional document on [forking a repository](https://help.github.com/articles/fork-a-repo/) and
+[creating a pull request](https://help.github.com/articles/creating-a-pull-request/).
+
+#### Development setup
+
+Please refer to [Compatibility and Installation](#installation) on how to set up your development environment.
+
+#### Finding contributions to work on
+
+Looking at the existing issues is a great way to find something to contribute on: issues labeled with 'good first issue' or 'help wanted' are a great place to start.
+
+#### Security issue notifications
+
+If you discover a potential security issue in this project, we ask that you create a public GitHub issue.
+
+#### Licensing
+
+See the [LICENSE](https://github.com/autonlab/aqua/blob/main/LICENSE) file for our project's licensing. We will ask you to confirm the licensing of your contribution.
+
+We may ask you to sign a [Contributor License Agreement (CLA)](http://en.wikipedia.org/wiki/Contributor_License_Agreement) for larger changes.
+
+<a id="sources"></a>
+## Sources
+
+<table>
+    <tr>
+        <td><center>Cleaning Methods and Datasets</td>
+        <td><center>License</td>
+        <td><center>Source</td>
+    </tr>
+    <tr>
+        <td>SimiFeat</td>
+        <td><a href = "https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></td>
+        <td><a href = "https://github.com/UCSC-REAL/SimiFeat">Link</a></td>
+    </tr>
+    <tr>
+        <td>AUM</td>
+        <td><a href = "https://en.wikipedia.org/wiki/MIT_License">MIT</a></td>
+        <td><a href = "https://github.com/asappresearch/aum">Link</a></td>
+    </tr>
+    <tr>
+        <td>CINCER</td>
+        <td><a href = "https://en.wikipedia.org/wiki/MIT_License">MIT</a></td>
+        <td><a href = "https://github.com/abonte/cincer">Link</a></td>
+    </tr>
+    <tr>
+        <td>Confident Learning</td>
+        <td><a href = "https://www.gnu.org/licenses/agpl-3.0.en.html">GNU AGPL v3.0</a></td>
+        <td><a href = "https://github.com/cleanlab/cleanlab">Link</a></td>
+    </tr>
+    <tr>
+        <td>CIFAR-10N</td>
+        <td><a href = "https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></td>
+        <td><a href = "http://www.noisylabels.com/">Link</a></td>
+    </tr>
+    <tr>
+        <td>CIFAR-10H</td>
+        <td><a href = "https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></td>
+        <td><a href = "https://github.com/jcpeterson/cifar-10h">Link</a></td>
+    </tr>
+    <tr>
+        <td>Clothing-100K</td>
+        <td>Non-commercial research and educational purposes</td>
+        <td><a href = "https://github.com/asappresearch/aum/tree/master/examples/paper_replication">Link 1</a>, <a href ="https://github.com/Cysu/noisy_label">Link 2</a></td>    
+    </tr>
+    <tr>
+        <td>NoisyCXR</td>
+        <td><a href = "https://nihcc.app.box.com/v/ChestXray-NIHCC/file/249502714403">Unrestricted use</a></td>
+        <td><a href = "https://github.com/microsoft/InnerEye-DeepLearning/tree/1606729c7a16e1bfeb269694314212b6e2737939/InnerEye-DataQuality">Link</a></td>
+    </tr>
+    <tr>
+        <td>IMDb</td>
+        <td><a href = "https://en.wikipedia.org/wiki/MIT_License">MIT</a></td>
+        <td><a href = "https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews">Link</a></td>
+    </tr>
+    <tr>
+        <td>TweetEval</td>
+        <td><a href = "https://en.wikipedia.org/wiki/MIT_License">MIT</a></td>
+        <td><a href = "https://huggingface.co/datasets/tweet_eval">Link</a></td>
+    </tr>
+    <tr>
+        <td>Credit Card Fraud Detection</td>
+        <td><a href = "https://opendatacommons.org/licenses/dbcl/1-0/">DbCL v1.0</a></td>
+        <td><a href = "https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud">Link</a></td>
+    </tr>
+    <tr>
+        <td>Adult</td>
+        <td><a href = "https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></td>
+        <td><a href = "http://archive.ics.uci.edu/dataset/2/adult">Link</a></td>
+    </tr>
+    <tr>
+        <td>Dry Bean</td>
+        <td><a href = "https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></td>
+        <td><a href = "https://archive.ics.uci.edu/dataset/602/dry+bean+dataset">Link</a></td>
+    </tr>
+    <tr>
+        <td>Car Evaluation</td>
+        <td><a href = "https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></td>
+        <td><a href = "https://archive.ics.uci.edu/dataset/19/car+evaluation">Link</a></td>
+    </tr>
+    <tr>
+        <td>Mushroom</td>
+        <td><a href = "https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></td>
+        <td><a href = "https://archive.ics.uci.edu/dataset/73/mushroom">Link</a></td>
+    </tr>
+    <tr>
+        <td>COMPAS</td>
+        <td><a href = "https://opendatacommons.org/licenses/dbcl/1-0/">DbCL v1.0</a></td>
+        <td><a href = "https://www.kaggle.com/datasets/danofer/compass">Link</a></td>
+    </tr>
+    <tr>
+        <td>Crop</td>
+        <td><a href = "https://www.gnu.org/licenses/gpl-3.0.en.html">GNU GPL v3.0</a></td>
+        <td><a href = "http://www.timeseriesclassification.com/description.php?Dataset=Crop">Link</a></td>
+    </tr>
+    <tr>
+        <td>ElectricDevices</td>
+        <td>-</td>
+        <td><a href = "https://timeseriesclassification.com/description.php?Dataset=ElectricDevices">Link</a></td>
+    </tr>
+    <tr>
+        <td>MIT-BIH</td>
+        <td><a href = "https://opendatacommons.org/licenses/by/1-0/">ODC-By v1.0</a></td>
+        <td><a href = "https://www.physionet.org/content/mitdb/1.0.0/">Link</a></td>
+    </tr>
+    <tr>
+        <td>PenDigits</td>
+        <td><a href = "https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a></td>
+        <td><a href = "http://www.timeseriesclassification.com/description.php?Dataset=PenDigits">Link</a></td>
+    </tr>
+    <tr>
+        <td>WhaleCalls</td>
+        <td>Copyright &#169; 2011 by Cornell University and Cornell Research Foundation, Inc.</td>
+        <td><a href = "https://www.timeseriesclassification.com/description.php?Dataset=RightWhaleCalls">Link</a></td>
+    </tr>
+</table>
+
+Table 3: Licenses for cleaning methods and datasets.
+           
 <a id="license"></a>
 ## License
 
