@@ -1,0 +1,10 @@
+{
+    "epochs": 1,
+    "batch_size": 256,
+    "lr": 0.01,
+    "lr_drops": [
+        0.5
+    ],
+    "momentum": 0.8,
+    "weight_decay": 1e-4
+}

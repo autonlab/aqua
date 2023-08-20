@@ -50,8 +50,6 @@ model_dict = {
 }
 
 def get_datacard(results_dict, dataset, architecture, noise_type, random_seed):
-    import pdb
-    pdb.set_trace()
     if dataset in results_dict:
         if architecture in results_dict[dataset]:
             if noise_type in results_dict[dataset][architecture]:
@@ -98,7 +96,6 @@ def train_base_model(data_aq: Aqdata,
     return test_predictions
 
 def get_results_dict():
-    import pdb
     BASE_PATH = "/zfsauton/data/public/vsanil/aqua_results"
 
     FOLDER_PATTERN = "results_(?P<timestamp>.*)_randomseed_(?P<randomseed>.*)_(?P<basemodel>.*)"
@@ -134,10 +131,8 @@ def get_results_dict():
             data_path = os.path.join(result_dir_path, filename)
             if dataset == 'clothing100k' and base_model == 'mobilenet_v2':
                 print(noise_type)
-                pdb.set_trace()
             results_dict[dataset][base_model][noise_type][random_seed]["datacard"] = pd.read_csv(data_path, index_col=0)
 
-    pdb.set_trace()
     return results_dict
 
 def main(base_dir, force_retrain=False, train_original=False):
