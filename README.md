@@ -90,14 +90,14 @@ All names indicated inside parentheses can be used to fill `aqua/configs/main_co
 <a id="syn_noise"></a>
 ## Synthetic Noise
 * For single-label datasets:
-    * Uniform Noise
-    * Class-dependent Noise
-    * Asymmetric Label Noise
-    * Instance-dependent Label Noise
+    * Uniform Noise ([Paper](https://arxiv.org/pdf/2003.10471.pdf))
+    * Class-dependent Noise ([Paper](https://arxiv.org/pdf/2003.10471.pdf))
+    * Asymmetric Label Noise ([Paper](https://proceedings.mlr.press/v162/zhu22a/zhu22a.pdf))
+    * Instance-dependent Label Noise ([Paper](https://arxiv.org/pdf/2006.07836.pdf))
 * For datasets with labels from multiple annotators:
-    * Dissenting Label
-    * Dissenting Worker
-    * Crowd Majority
+    * Dissenting Label ([Paper](https://arxiv.org/pdf/2205.12702.pdf))
+    * Dissenting Worker ([Paper](https://arxiv.org/pdf/2205.12702.pdf))
+    * Crowd Majority ([Paper](https://arxiv.org/pdf/2205.12702.pdf))
 
 <a id="installation"></a>
 ## Compatibility and Installation
