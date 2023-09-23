@@ -942,7 +942,7 @@ If you use AQuA in any scientific publication, please consider citing our work i
 @article{goswami2023aqua,
 title={AQuA: A Benchmarking Tool for Label Quality Assessment},
 author={Goswami, Mononito and Sanil, Vedant and Choudhry, Arjun and Srinivasan, Arvind and Udompanyawit, Chalisa and Dubrawski, Artur},
-journal={arXiv preprint arXiv:2306.09467},
+journal={Neural Information Processing Systems Track on Datasets and Benchmarks},
 year={2023}
 ```
 
