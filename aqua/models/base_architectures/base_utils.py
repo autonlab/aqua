@@ -83,9 +83,9 @@ class AttentionLayer(nn.Module):
             queries,
             keys,
             values,
-            #attn_mask,
-            #tau=tau,
-            #delta=delta
+            attn_mask,
+            tau=tau,
+            delta=delta
         )
         out = out.view(B, L, -1)
 
@@ -98,7 +98,7 @@ class FullAttention(nn.Module):
         self.output_attention = output_attention
         self.dropout = nn.Dropout(attention_dropout)
 
-    def forward(self, queries, keys, values):
+    def forward(self, queries, keys, values, *args, **kwargs):
         B, L, H, E = queries.shape
         _, S, _, D = values.shape
         scale = self.scale or 1. / math.sqrt(E)

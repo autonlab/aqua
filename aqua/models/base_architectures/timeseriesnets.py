@@ -367,7 +367,9 @@ class PatchTST(torch.nn.Module):
         # Decoder
         output = self.flatten(enc_out)
         output = self.dropout(output)
+        print("OUTPUT SHAPE: ", output.shape)
         output = output.reshape(output.shape[0], -1)
+        print("OUTPUT SHAPE AFTER RESHAPE: ", output.shape)
         return output
 
 class Lambda(torch.nn.Module):
@@ -398,7 +400,7 @@ class TimeSeriesNet(Module):
                             filters=kwargs['filters'],
                             kernel_sizes=kwargs['kernel_sizes']), Linear(in_features=kwargs['filters'][-1] + kwargs['units'][-1], out_features=self.output_dim)
         elif model_type == 'patchtst':
-            head_nf = kwargs['d_model'] * int((kwargs['input_length'] - kwargs['patch_len']) / kwargs['stride'] + 2)
+            head_nf = kwargs['d_model'] * ((max(kwargs['input_length'], kwargs['patch_len']) -kwargs['patch_len']) // kwargs['stride'] + 1)
             return PatchTST(seq_len=kwargs['input_length'], 
                             patch_len=kwargs['patch_len'],
                             stride=kwargs['stride'],
