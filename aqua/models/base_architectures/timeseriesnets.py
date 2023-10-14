@@ -398,8 +398,8 @@ class TimeSeriesNet(Module):
                             filters=kwargs['filters'],
                             kernel_sizes=kwargs['kernel_sizes']), Linear(in_features=kwargs['filters'][-1] + kwargs['units'][-1], out_features=self.output_dim)
         elif model_type == 'patchtst':
-            head_nf = kwargs['d_model'] * int((kwargs['seq_len'] - kwargs['patch_len']) / kwargs['stride'] + 2)
-            return PatchTST(seq_len=kwargs['seq_len'], 
+            head_nf = kwargs['d_model'] * int((kwargs['input_length'] - kwargs['patch_len']) / kwargs['stride'] + 2)
+            return PatchTST(seq_len=kwargs['input_length'], 
                             patch_len=kwargs['patch_len'],
                             stride=kwargs['stride'],
                             d_model=kwargs['d_model'],
