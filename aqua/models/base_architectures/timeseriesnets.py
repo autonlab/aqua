@@ -22,11 +22,16 @@
 
 import torch
 from os.path import join
-from torch.nn import Module, Conv1d, BatchNorm1d, ReLU, Sequential, Softmax, AvgPool1d, Linear, CrossEntropyLoss
+from torch.nn import (Module, Conv1d, BatchNorm1d, 
+                      ReLU, Sequential, Softmax, 
+                      AvgPool1d, Linear, CrossEntropyLoss,
+                      LayerNorm, Flatten, Dropout)
 from typing import Tuple, Union, Callable, Optional
 from collections import OrderedDict
+from .base_utils import (AttentionLayer, 
+    FullAttention, EncoderLayer, Encoder, PatchEmbedding)
 
-class ResNet1D(Module):
+class ResNet1D(torch.nn.Module):
     """
     Parameters
     ---------- 
@@ -294,7 +299,77 @@ class LSTM_FCN(torch.nn.Module):
         y = torch.concat((self.fcn(x), self.lstm(x)), dim=-1)
         
         return y
+
+################# PatchTST ####################
+
+class PatchTST(torch.nn.Module):
+    """
+    Paper link: https://arxiv.org/pdf/2211.14730.pdf
+    """
+
+    def __init__(self, 
+                 seq_len:int=512, 
+                 patch_len:int=16, 
+                 stride:int=8, 
+                 d_model:int=512, 
+                 dropout:float=0.1,
+                 output_attention:bool=False,
+                 n_heads:int=8,
+                 d_ff:int=2048,
+                 activation:str='gelu',
+                 e_layers:int=2):
+        """
+        """
+        super().__init__()
+        self.seq_len = seq_len
+        padding = stride
+
+        # patching and embedding
+        self.patch_embedding = PatchEmbedding(d_model, patch_len, 
+                                              stride, padding, dropout)
+
+        # Encoder
+        self.encoder = Encoder(
+            [
+                EncoderLayer(
+                    AttentionLayer(
+                        FullAttention(attention_dropout=dropout, output_attention=output_attention), 
+                        d_model, n_heads),
+                    d_model, d_ff, dropout=dropout, activation=activation
+                ) for l in range(e_layers)
+            ],
+            norm_layer=LayerNorm(d_model)
+        )
+   
+        self.flatten = Flatten(start_dim=-2)
+        self.dropout = Dropout(dropout)
     
+    def forward(self, x_enc):
+        # Normalization 
+        means = x_enc.mean(1, keepdim=True).detach()
+        x_enc = x_enc - means
+        stdev = torch.sqrt(
+            torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
+        x_enc /= stdev
+
+        # Patching and Embedding
+        x_enc = x_enc.permute(0, 2, 1)
+        enc_out, n_vars = self.patch_embedding(x_enc)
+
+        # Encoder
+        enc_out, _ = self.encoder(enc_out)
+        # z: [batch_size x nvars x patch_num x d_model]
+        enc_out = torch.reshape(
+            enc_out, (-1, n_vars, enc_out.shape[-2], enc_out.shape[-1]))
+        # z: [batch_size x nvars x d_model x patch_num]
+        enc_out = enc_out.permute(0, 1, 3, 2)
+
+        # Decoder
+        output = self.flatten(enc_out)
+        output = self.dropout(output)
+        output = output.reshape(output.shape[0], -1)
+        return output
+
 class Lambda(torch.nn.Module):
     
     def __init__(self, f):
@@ -304,8 +379,6 @@ class Lambda(torch.nn.Module):
     def forward(self, x):
         return self.f(x)
     
-
-
 class TimeSeriesNet(Module):
     def __init__(self, model_type, output_dim, in_channels=2, **kwargs) -> None:
         super(TimeSeriesNet, self).__init__()
@@ -317,13 +390,25 @@ class TimeSeriesNet(Module):
         if model_type == 'resnet1d':
             return ResNet1D(input_shape=((self.in_channels, 0)),
                             **kwargs), Linear(kwargs['n_feature_maps']*2, self.output_dim)
-        if model_type == 'fcn':
+        elif model_type == 'fcn':
             kwargs['filters'][0] = self.in_channels
             return LSTM_FCN(input_length=kwargs['input_length'],
                             units=kwargs['units'],
                             dropout=kwargs['dropout'],
                             filters=kwargs['filters'],
                             kernel_sizes=kwargs['kernel_sizes']), Linear(in_features=kwargs['filters'][-1] + kwargs['units'][-1], out_features=self.output_dim)
+        elif model_type == 'patchtst':
+            head_nf = kwargs['d_model'] * int((kwargs['seq_len'] - kwargs['patch_len']) / kwargs['stride'] + 2)
+            return PatchTST(seq_len=kwargs['seq_len'], 
+                            patch_len=kwargs['patch_len'],
+                            stride=kwargs['stride'],
+                            d_model=kwargs['d_model'],
+                            dropout=kwargs['dropout'],
+                            output_attention=kwargs['output_attention'],
+                            n_heads=kwargs['n_heads'],
+                            d_ff=kwargs['d_ff'],
+                            activation=kwargs['activation'],
+                            e_layers=kwargs['e_layers']), Linear(head_nf * self.in_channels, self.output_dim) 
         else:
             raise NotImplementedError(f"Given model type: {model_type} is not supported. Currently supported methods are: {'resnet1d'}")
         
