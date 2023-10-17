@@ -21,9 +21,13 @@
 # SOFTWARE.
 
 import torch
-from aqua.models.base_architectures.base_utils import *
+from .base_utils import *
+import timm
+import aqua.models.base_architectures.fast_vit
+
 
 from torchvision.transforms import RandomHorizontalFlip, ColorJitter, Resize
+
 
 class ConvNet(torch.nn.Module):
     def __init__(self, model_type, output_dim, **kwargs):
@@ -46,6 +50,8 @@ class ConvNet(torch.nn.Module):
         elif model_type == 'vit':
             self.transforms = torch.nn.Sequential(Resize(224))
             return getVisualTransformer(), 1000
+        elif model_type == 'fastvit_t8':
+            return timm.create_model('fastvit_t8'), 1000
         else:
             raise RuntimeWarning(f"Given model type: {model_type} is not supported")
 

@@ -22,7 +22,10 @@
 
 from typing import Optional, List
 import torch
+from copy import deepcopy
 from sklearn.ensemble import RandomForestClassifier
+from pytorch_tabnet.tab_network import TabNetNoEmbeddings
+from aqua.configs import main_config
 
 class MLPNet(torch.nn.Module):
     def __init__(self, input_dim:int, layers:Optional[List]=None, p:float=0.2):
@@ -53,15 +56,19 @@ class TabularNet(torch.nn.Module):
     def __init__(self, model_type, output_dim, **kwargs):
         super(TabularNet, self).__init__()
         self.output_dim = output_dim
-        self.model = self.__get_model(model_type, **kwargs)
+
         
         # Make the output layer
-        if len(kwargs["layers"]) == 0 or kwargs["layers"] is None: 
+        if "layers" not in kwargs or len(kwargs["layers"]) == 0 or kwargs["layers"] is None: 
             penultimate_layer_dim = kwargs['input_dim']//4
         else:
             penultimate_layer_dim = kwargs['layers'][-1]
+
+        self.penultimate_layer_dim = penultimate_layer_dim
+
+        self.model = self.__get_model(model_type, **kwargs)
         
-        self.output_layer = torch.nn.Linear(penultimate_layer_dim, 
+        self.output_layer = torch.nn.Linear(self.penultimate_layer_dim, 
                                             self.output_dim)
         
     def __get_model(self, model_type, **kwargs):
@@ -69,9 +76,21 @@ class TabularNet(torch.nn.Module):
             return MLPNet(kwargs['input_dim'], 
                           kwargs['layers'],
                           kwargs['p'])
+        elif model_type=='tab-transformer':
+            tabnet_kwargs = deepcopy(kwargs)
+            for nontabnet_configs in ["epochs", "lr", "batch_size", "lr_drops", "layers"]:
+                if nontabnet_configs in tabnet_kwargs:
+                    tabnet_kwargs.pop(nontabnet_configs)
+            
+            group_attention_matrix = torch.eye(kwargs['input_dim']).to(torch.device(main_config['device']))
+            return TabNetNoEmbeddings(output_dim=self.penultimate_layer_dim,
+                                      group_attention_matrix=group_attention_matrix,
+                                      **tabnet_kwargs)
         
     def forward(self, x, return_feats=False, **kwargs):
         feats = self.model(x)
+        if isinstance(feats, tuple):
+            feats = feats[0]
         x = self.output_layer(feats)
         if x.shape[0] != feats.shape[0]:
             x = x.unsqueeze(0)

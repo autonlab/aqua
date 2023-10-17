@@ -78,7 +78,6 @@ class AttentionLayer(nn.Module):
         keys = self.key_projection(keys).view(B, S, H, -1)
         values = self.value_projection(values).view(B, S, H, -1)
 
-        print(type(self.inner_attention))
         out, attn = self.inner_attention(
             queries,
             keys,
@@ -194,8 +193,9 @@ class PatchEmbedding(nn.Module):
         # Patching
         self.patch_len = patch_len
         self.stride = stride
+        self.d_model = d_model
 
-        self.padding_patch_layer = nn.ReplicationPad1d(padding)
+        self.padding_patch_layer = nn.ReplicationPad1d((0, padding))
 
         # Backbone, Input encoding: projection of feature vectors onto a d-dim vector space
         self.value_embedding = nn.Linear(patch_len, d_model, bias=False)
@@ -208,10 +208,12 @@ class PatchEmbedding(nn.Module):
 
     def forward(self, x):
         # do patching
-        n_vars = x.shape[1]
+        x_shape = x.shape
         x = self.padding_patch_layer(x)
         x = x.unfold(dimension=-1, size=self.patch_len, step=self.stride)
         x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))
         # Input encoding
         x = self.value_embedding(x) + self.position_embedding(x)
-        return self.dropout(x), n_vars
+        x = torch.reshape(x, (x_shape[0], x_shape[1], -1, self.d_model))
+        #x += self.position_embedding(x)
+        return self.dropout(x)

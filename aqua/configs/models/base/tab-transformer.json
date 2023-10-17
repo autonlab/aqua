@@ -1,0 +1,16 @@
+{
+    "n_d": 8,
+    "n_a":8,
+    "n_steps":3,
+    "gamma":1.3,
+    "n_independent":2,
+    "n_shared":2,
+    "epsilon":1e-15,
+    "virtual_batch_size":64,
+    "momentum":0.02,
+    "mask_type":"sparsemax",
+    "epochs": 10,
+    "batch_size": 64,
+    "lr":0.01,
+    "lr_drops": []
+}

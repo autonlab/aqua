@@ -45,6 +45,7 @@ class AqModel:
                        device='cpu',
                        optimizer=None):
         weighted_loss = data_configs[dataset]['weighted_loss'] if ('weighted_loss' in data_configs[dataset] and data_configs[dataset]['weighted_loss']) else False
+
         self.model = AqNet(model, 
                            output_dim=data_configs[dataset]['out_classes'],
                            epochs=model_configs['base'][architecture]['epochs'],
@@ -63,8 +64,6 @@ class AqModel:
             self.wrapper_model = AUM(self.model, optimizer)
         elif method == "cincer":
             self.wrapper_model = CINCER(self.model, optimizer)
-        elif method == "active_label_cleaning":
-            self.wrapper_model = ActiveLabelCleaning(self.model)
         elif method == 'simifeat':
             self.wrapper_model = SimiFeat(self.model)
         elif method == 'noisy':

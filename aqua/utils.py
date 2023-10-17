@@ -53,14 +53,14 @@ def get_optimizer(model:torch.nn.Module,
     """
     Initialize a new optimizer for a new model
     """
-    if 'momentum' in model_configs['base'][architecture]:
+    if 'momentum' in model_configs['base'][architecture] and 'weight_decay' in model_configs['base'][architecture]:
         optim = torch.optim.SGD(model.parameters(),
                                       lr=model_configs['base'][architecture]['lr'],
                                       momentum=model_configs['base'][architecture]['momentum'],
                                       weight_decay=model_configs['base'][architecture]['weight_decay'])
     else:
         optim = torch.optim.Adam(model.parameters(),
-                                       lr=model_configs['base'][architecture]['lr'])
+                                    lr=model_configs['base'][architecture]['lr'])
     return optim
 
 

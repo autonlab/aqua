@@ -323,6 +323,7 @@ class PatchTST(torch.nn.Module):
         super().__init__()
         self.seq_len = seq_len
         padding = stride
+        self.d_model = d_model
 
         # patching and embedding
         self.patch_embedding = PatchEmbedding(d_model, patch_len, 
@@ -345,6 +346,7 @@ class PatchTST(torch.nn.Module):
         self.dropout = Dropout(dropout)
     
     def forward(self, x_enc):
+        n_vars = x_enc.shape[1]
         # Normalization 
         means = x_enc.mean(1, keepdim=True).detach()
         x_enc = x_enc - means
@@ -352,24 +354,20 @@ class PatchTST(torch.nn.Module):
             torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
         x_enc /= stdev
 
-        # Patching and Embedding
-        x_enc = x_enc.permute(0, 2, 1)
-        enc_out, n_vars = self.patch_embedding(x_enc)
-
+        enc_out = self.patch_embedding(x_enc)
+        enc_out = enc_out.reshape(x_enc.shape[0]*n_vars,-1, self.d_model)
+         
         # Encoder
         enc_out, _ = self.encoder(enc_out)
-        # z: [batch_size x nvars x patch_num x d_model]
         enc_out = torch.reshape(
             enc_out, (-1, n_vars, enc_out.shape[-2], enc_out.shape[-1]))
-        # z: [batch_size x nvars x d_model x patch_num]
         enc_out = enc_out.permute(0, 1, 3, 2)
 
         # Decoder
+        enc_out = enc_out.mean(dim=1)
         output = self.flatten(enc_out)
         output = self.dropout(output)
-        print("OUTPUT SHAPE: ", output.shape)
         output = output.reshape(output.shape[0], -1)
-        print("OUTPUT SHAPE AFTER RESHAPE: ", output.shape)
         return output
 
 class Lambda(torch.nn.Module):
@@ -400,7 +398,7 @@ class TimeSeriesNet(Module):
                             filters=kwargs['filters'],
                             kernel_sizes=kwargs['kernel_sizes']), Linear(in_features=kwargs['filters'][-1] + kwargs['units'][-1], out_features=self.output_dim)
         elif model_type == 'patchtst':
-            head_nf = kwargs['d_model'] * ((max(kwargs['input_length'], kwargs['patch_len']) -kwargs['patch_len']) // kwargs['stride'] + 1)
+            head_nf = kwargs['d_model'] * int(((max(kwargs['input_length'], kwargs['patch_len']) -kwargs['patch_len']) / kwargs['stride'] + 2))
             return PatchTST(seq_len=kwargs['input_length'], 
                             patch_len=kwargs['patch_len'],
                             stride=kwargs['stride'],
@@ -410,7 +408,7 @@ class TimeSeriesNet(Module):
                             n_heads=kwargs['n_heads'],
                             d_ff=kwargs['d_ff'],
                             activation=kwargs['activation'],
-                            e_layers=kwargs['e_layers']), Linear(head_nf * self.in_channels, self.output_dim) 
+                            e_layers=kwargs['e_layers']), Linear(head_nf, self.output_dim) 
         else:
             raise NotImplementedError(f"Given model type: {model_type} is not supported. Currently supported methods are: {'resnet1d'}")
         

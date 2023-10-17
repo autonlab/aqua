@@ -70,6 +70,7 @@ class Aqdata(Dataset):
         self.data, self.labels = self.add_noise(self.data, self.labels, noise_kwargs)
 
     def clean_data(self, label_issues):
+        # This removes all datapoints and labels that were detected as label noise
         self.data = self.data[label_issues == 0]
         self.labels = self.labels[label_issues == 0]
         if self.attention_masks is not None: 
@@ -82,6 +83,7 @@ class Aqdata(Dataset):
             self.attention_masks = self.attention_masks[inds]
     
     def add_noise(self, data, labels, noise_kwargs={}):
+        # Add label noise here, type of label noise to be added is defined in inits, under kwargs, ex: noise_type='uniform'
         logging.info(f"Adding noise with noise rate: {self.noise_rate}")
     
         if self.noise_type == 'uniform':

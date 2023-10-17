@@ -1,24 +1,14 @@
 {
     "datasets" : [
-        "crop",
-        "electricdevices",
-        "mitbih",
-        "pendigits",
-        "whalecalls"
+        "crop"
     ],
     "methods" : [
-        "cincer",
-        "aum",
-        "simifeat",
-        "cleanlab"
+        "cincer"
     ],
     "noise": [
-        "uniform",
-        "classdependent",
-        "instancedependent",
-        "asymmetric"
+        "uniform"
     ],
-    "noise_rates" : [0.02, 0.1, 0.3],
+    "noise_rates" : [0.1],
     "device" : "cuda:0",
     "architecture" :{
         "image" : "fastvit_t8",
